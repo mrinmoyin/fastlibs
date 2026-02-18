@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef BMP180_H
-#define BMP180_H
+#ifndef MPU6500_H
+#define MPU6500_H
 
 #include <Arduino.h>
 #include <SPI.h>
@@ -12,18 +12,16 @@
 #define REG_OSS_2       0xB4
 #define REG_OSS_3       0xF4
 
-class BMP180 {
+class MPU6500 {
   public:
-    BMP180(
+    MPU6500(
         TwoWire &wire = Wire
         ):wire(wire) {};
-
-  float alt, temp, pres;
 
   bool begin();
 
   private: 
-    TwoWire &spi;
+    TwoWire &wire;
 
     void start();
     void end();
