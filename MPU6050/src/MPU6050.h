@@ -5,6 +5,7 @@
 
 #include <Arduino.h>
 #include <SPI.h>
+#include <Wire.h>
 
 #define REG_TEMPERATURE 0x2E
 #define REG_OSS_0       0x34

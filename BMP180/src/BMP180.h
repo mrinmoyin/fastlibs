@@ -4,7 +4,7 @@
 #define BMP180_H
 
 #include <Arduino.h>
-#include <SPI.h>
+#include <Wire.h>
 
 #define REG_TEMPERATURE 0x2E
 #define REG_OSS_0       0x34
@@ -23,7 +23,7 @@ class BMP180 {
   bool begin();
 
   private: 
-    TwoWire &spi;
+    TwoWire &wire;
 
     void start();
     void end();
