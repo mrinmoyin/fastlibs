@@ -30,7 +30,8 @@ class BMP180 {
   public:
     BMP180(
         TwoWire &wire = Wire
-        ):wire(wire) {};
+        ):wire(wire),
+          oss(3) {};
 
   float alt, temp, press;
 
@@ -39,10 +40,11 @@ class BMP180 {
 
   private: 
     TwoWire &wire;
+    uint8_t oss;
 
     int16_t ac1, ac2, ac3, b1, b2, mb, mc, md;
     uint16_t ac4, ac5, ac6;
-    int32_t b6, x1, x2, x3, b3, b4, b7;
+    int32_t x1, x2, x3, b3, b4, b5, b6, b7;
     int32_t ut, up, t, p;
 
     void start();
@@ -53,6 +55,10 @@ class BMP180 {
     void getUP(); // get uncompensated pressure value
     void getTemp(); // get temperature in 0.1C
     void getPress(); // get pressure in Pa
+                     
+    byte readReg(byte addr);
+    void readRegBurst(byte addr, byte *buff, uint8_t len);
+    void writeReg(byte addr, byte value);
 };
 
 #endif

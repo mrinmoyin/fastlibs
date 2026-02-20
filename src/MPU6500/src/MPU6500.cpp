@@ -6,8 +6,6 @@ bool MPU6500::begin() {
 }
 
 void MPU6500::start() {
-  wire.beginTransmission();
 }
 void MPU6500::end() {
-  wire.endTransmission();
 }

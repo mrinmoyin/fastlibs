@@ -4,7 +4,6 @@
 #define MPU6050_H
 
 #include <Arduino.h>
-#include <SPI.h>
 #include <Wire.h>
 
 class MPU6050 {
