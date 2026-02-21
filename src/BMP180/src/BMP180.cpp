@@ -23,7 +23,21 @@ void BMP180::update() {
   Serial1.print(" ac3: ");
   Serial1.print(ac3);
   Serial1.print(" ac4: ");
-  Serial1.println(ac4);
+  Serial1.print(ac4);
+  Serial1.print(" ac5: ");
+  Serial1.print(ac5);
+  Serial1.print(" ac6: ");
+  Serial1.print(ac6);
+  Serial1.print(" b1: ");
+  Serial1.print(b1);
+  Serial1.print(" b2: ");
+  Serial1.print(b2);
+  Serial1.print(" mb: ");
+  Serial1.print(mb);
+  Serial1.print(" mc: ");
+  Serial1.print(mc);
+  Serial1.print(" md: ");
+  Serial1.println(md);
 
   Serial1.print("UT: ");
   Serial1.print(ut);
@@ -64,22 +78,22 @@ void BMP180::getUT() {
   wire.beginTransmission(BMP180_ADDR);
   wire.write(0xF4);
   wire.write(0x2E);
-  // wire.endTransmission();
-  if (wire.endTransmission != 0) Serial1.println("Error endTransmission");
+  wire.endTransmission();
   delay(4.5);
   wire.beginTransmission(BMP180_ADDR);
   wire.write(0xF6);
-  // wire.endTransmission();
-  if (wire.endTransmission != 0) Serial1.println("Error endTransmission");
+  wire.endTransmission();
   wire.requestFrom(BMP180_ADDR, 2);
   ut = (wire.read() << 8) | wire.read();
-  // ut <<= wire.read();
-  // ut |= wire.read();   
 }
 void BMP180::getUP() {
   wire.beginTransmission(BMP180_ADDR);
   wire.write(0xF4);
-  wire.write(0x34 | (oss << 6));
+  // wire.write(0x34 | (oss << 6));
+  wire.write(0x34);
+  // wire.write(0x74);
+  // wire.write(0xB4);
+  // wire.write(0xF4);
   wire.endTransmission();
   switch (oss) {
     case 3:
@@ -102,9 +116,14 @@ void BMP180::getUP() {
   up = (((wire.read() << 16) | wire.read() << 8) | wire.read()) >> (8 - oss);
 }
 void BMP180::getTemp() {
-  x1 = (ut - ac6) * ac5 / (2 << 15);
-  x2 = mc * (2 << 11) / (x1 + md);
-  t = (b5 + 8) / (2 << 4);
+  // x1 = (ut - ac6) * ac5 / (2 << 15);
+  // x2 = mc * (2 << 11) / (x1 + md);
+  // b5 = x1 + x2;
+  // t = (b5 + 8) / (2 << 4);
+  x1 = (ut - ac6) * ac5 / pow(2, 15);
+  x2 = mc * pow(2, 11) / (x1 + md);
+  b5 = x1 + x2;
+  t = (b5 + 8) / pow(2, 4);
 }
 void BMP180::getPress() {
   b6 = b5 - 4000;
@@ -115,7 +134,7 @@ void BMP180::getPress() {
   x1 = ac3 * b6 / (2 << 13);
   x2 = (b1 * (b6 * b6 / (2 << 12))) / (2 << 16);
   x3 = ((x1 + x2) + 2) / (2 << 2);
-  b4 = ac4 * (uint32_t)(up - b3) * (50000 >> 0);
+  b4 = ac4 * (uint32_t)(up - b3) * (50000 >> oss);
   if (b7 < 0x80000000) p = (b7 * 2) / b4;
   else p = (b7 / b4) * 2;
   x1 = (p / (2 << 8)) * (p / (2 << 8));

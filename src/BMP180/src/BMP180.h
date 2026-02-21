@@ -31,7 +31,7 @@ class BMP180 {
     BMP180(
         TwoWire &wire = Wire
         ):wire(wire),
-          oss(3) {};
+          oss(0) {};
 
   float alt, temp, press;
 
