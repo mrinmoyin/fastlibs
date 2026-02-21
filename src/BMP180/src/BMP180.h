@@ -44,7 +44,8 @@ class BMP180 {
 
     int16_t ac1, ac2, ac3, b1, b2, mb, mc, md;
     uint16_t ac4, ac5, ac6;
-    int32_t x1, x2, x3, b3, b4, b5, b6, b7;
+    int32_t x1, x2, x3, b3, b5, b6;
+    uint32_t b4, b7;
     int32_t ut, up, t, p;
 
     void start();
