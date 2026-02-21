@@ -10,7 +10,7 @@ bool BMP180::begin() {
 
   return true;
 }
-bool BMP180::update() {
+void BMP180::update() {
   getUT();
   getUP();
   getTemp();
@@ -33,8 +33,6 @@ bool BMP180::update() {
   Serial1.print(t);
   Serial1.print(" Press: ");
   Serial1.println(p);
-
-  return true;
 }
 
 void BMP180::start() {
@@ -50,40 +48,31 @@ void BMP180::getCP() {
   // byte calData[22];
   // wire.readBytes(calData, 22);
   // ac1 = (calData[0] < 8) | calData[1];
-  ac1 <<= wire.read();
-  ac1 |= wire.read();
-  ac2 <<= wire.read();
-  ac2 |= wire.read();
-  ac3 <<= wire.read();
-  ac3 |= wire.read();
-  ac4 <<= wire.read();
-  ac4 |= wire.read();
-  ac5 <<= wire.read();
-  ac5 |= wire.read();
-  ac6 <<= wire.read();
-  ac6 |= wire.read();
-  b1 <<= wire.read();
-  b1 |= wire.read();
-  b2 <<= wire.read();
-  b2 |= wire.read();
-  mb <<= wire.read();
-  mb |= wire.read();
-  mc <<= wire.read();
-  mc |= wire.read();
-  md <<= wire.read();
-  md |= wire.read();
+  ac1 = (wire.read() << 8) | wire.read();
+  ac2 = (wire.read() << 8) | wire.read();
+  ac3 = (wire.read() << 8) | wire.read();
+  ac4 = (wire.read() << 8) | wire.read();
+  ac5 = (wire.read() << 8) | wire.read();
+  ac6 = (wire.read() << 8) | wire.read();
+  b1 = (wire.read() << 8) | wire.read();
+  b2 = (wire.read() << 8) | wire.read();
+  mb = (wire.read() << 8) | wire.read();
+  mc = (wire.read() << 8) | wire.read();
+  md = (wire.read() << 8) | wire.read();
 } 
 void BMP180::getUT() {
   wire.beginTransmission(BMP180_ADDR);
   wire.write(0xF4);
   wire.write(0x2E);
-  wire.endTransmission();
+  // wire.endTransmission();
+  if (wire.endTransmission != 0) Serial1.println("Error endTransmission");
   delay(4.5);
   wire.beginTransmission(BMP180_ADDR);
   wire.write(0xF6);
-  wire.endTransmission();
+  // wire.endTransmission();
+  if (wire.endTransmission != 0) Serial1.println("Error endTransmission");
   wire.requestFrom(BMP180_ADDR, 2);
-  ut = (wire.read() < 8) | wire.read();
+  ut = (wire.read() << 8) | wire.read();
   // ut <<= wire.read();
   // ut |= wire.read();   
 }

@@ -36,7 +36,7 @@ class BMP180 {
   float alt, temp, press;
 
   bool begin();
-  bool update();
+  void update();
 
   private: 
     TwoWire &wire;
