@@ -72,27 +72,16 @@ void BMP180::getCP() {
   md = (wire.read() << 8) | wire.read();
 } 
 void BMP180::getUT() {
-  wire.beginTransmission(BMP180_ADDR);
-  wire.write(0xF4);
-  wire.write(0x2E);
-  wire.endTransmission();
+  writeReg(0xF4, 0x2E);
   delay(4.5);
-  wire.beginTransmission(BMP180_ADDR);
-  wire.write(REG_MEAS);
-  wire.endTransmission();
-  wire.requestFrom(BMP180_ADDR, 2);
-  ut = (wire.read() << 8) | wire.read();
+  ut = readReg16(REG_MEAS);
 }
 void BMP180::getUP() {
-  // wire.beginTransmission(BMP180_ADDR);
-  // wire.write(0xF4);
-  // // wire.write(0x34 | (oss << 6));
-  // wire.write(0x34 + (oss << 6));
-  // // wire.write(0x34);
-  // // wire.write(0x74);
-  // // wire.write(0xB4);
-  // // wire.write(0xF4);
-  // wire.endTransmission();
+  writeReg(0xF4, 0x34 | (oss << 6));
+  // writeReg(0xF4, 0x34);
+  // writeReg(0xF4, 0x74);
+  // writeReg(0xF4, 0xB4);
+  // writeReg(0xF4, 0xF4);
   switch (oss) {
     case 3:
       delay(25.5);
@@ -175,5 +164,17 @@ byte BMP180::readReg(byte addr) {
   wire.requestFrom(BMP180_ADDR, 1);
   return wire.read();
 }
+byte BMP180::readReg16(byte addr) {
+  wire.beginTransmission(BMP180_ADDR);
+  wire.write(addr);
+  wire.endTransmission();
+  wire.requestFrom(BMP180_ADDR, 2);
+  return (wire.read() << 8) | wire.read();
+}
 void BMP180::readRegBurst(byte addr, byte *buff, uint8_t len) {}
-void BMP180::writeReg(byte addr, byte value) {}
+void BMP180::writeReg(byte addr, byte val) {
+  wire.beginTransmission(BMP180_ADDR);
+  wire.write(addr);
+  wire.write(val);
+  wire.endTransmission();
+}

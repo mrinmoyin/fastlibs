@@ -62,6 +62,7 @@ class BMP180 {
     void getPress(); // get pressure in Pa
                      
     byte readReg(byte addr);
+    byte readReg16(byte addr);
     void readRegBurst(byte addr, byte *buff, uint8_t len);
     void writeReg(byte addr, byte value);
 };
