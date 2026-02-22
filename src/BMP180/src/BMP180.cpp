@@ -157,14 +157,14 @@ void BMP180::getPress() {
   Serial1.println(p);
 }
 
-byte BMP180::readReg(byte addr) {
+uint8_t BMP180::readReg(byte addr) {
   wire.beginTransmission(BMP180_ADDR);
   wire.write(addr);
   wire.endTransmission();
   wire.requestFrom(BMP180_ADDR, 1);
   return wire.read();
 }
-byte BMP180::readReg16(byte addr) {
+uint16_t BMP180::readReg16(byte addr) {
   wire.beginTransmission(BMP180_ADDR);
   wire.write(addr);
   wire.endTransmission();

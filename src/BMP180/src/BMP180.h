@@ -61,8 +61,8 @@ class BMP180 {
     void getTemp(); // get temperature in 0.1C
     void getPress(); // get pressure in Pa
                      
-    byte readReg(byte addr);
-    byte readReg16(byte addr);
+    uint8_t readReg(byte addr);
+    uint16_t readReg16(byte addr);
     void readRegBurst(byte addr, byte *buff, uint8_t len);
     void writeReg(byte addr, byte value);
 };
