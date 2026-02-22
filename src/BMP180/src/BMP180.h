@@ -6,7 +6,11 @@
 #include <Arduino.h>
 #include <Wire.h>
 
-#define BMP180_ADDR 0x77
+#define BMP180_ADDR     0x77
+#define BMP180_CHIP_ID  0x55
+
+#define REG_CHIP_ID     0xD0
+#define REG_MEAS        0xF6
 
 #define REG_TEMPERATURE 0x2E
 #define REG_OSS_0       0x34
