@@ -3,7 +3,7 @@
 #ifndef QMC5883L_H
 #define QMC5883L_H
 
-#include "../../fastutils.h"
+#include "../fastutils.h"
 
 #define QMC5883L_CHIP_ID           0xFF
 #define QMC5883L_REG_CHIP_ID       0x0D
