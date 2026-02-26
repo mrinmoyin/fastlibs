@@ -18,6 +18,8 @@ bool MPU6500::begin() {
   gyroOffset.y = (rawData[2] << 8) | rawData[3];
   gyroOffset.z = (rawData[4] << 8) | rawData[5];
 
+  update();
+
   return true;
 }
 void MPU6500::update() {
