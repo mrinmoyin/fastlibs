@@ -4,6 +4,7 @@ bool BMP180::begin() {
   if (bus.read(BMP180_REG_CHIP_ID) != BMP180_CHIP_ID) return false;
 
   getCP();
+  update();
 
   return true;
 }
@@ -28,44 +29,28 @@ void BMP180::getCP() {
   cal.mc = (calData[18] << 8) | calData[19];
   cal.md = (calData[20] << 8) | calData[21];
 
-  // bus.wire.beginTransmission(BMP180_REG_ADDR);
-  // bus.wire.write(0xAA);
-  // bus.wire.endTransmission();
-  // bus.wire.requestFrom(BMP180_REG_ADDR, 22);
-  // ac1 = (bus.wire.read() << 8) | bus.wire.read();
-  // ac2 = (bus.wire.read() << 8) | bus.wire.read();
-  // ac3 = (bus.wire.read() << 8) | bus.wire.read();
-  // ac4 = (bus.wire.read() << 8) | bus.wire.read();
-  // ac5 = (bus.wire.read() << 8) | bus.wire.read();
-  // ac6 = (bus.wire.read() << 8) | bus.wire.read();
-  // b1 = (bus.wire.read() << 8) | bus.wire.read();
-  // b2 = (bus.wire.read() << 8) | bus.wire.read();
-  // mb = (bus.wire.read() << 8) | bus.wire.read();
-  // mc = (bus.wire.read() << 8) | bus.wire.read();
-  // md = (bus.wire.read() << 8) | bus.wire.read();
-
-  // Serial1.print("ac1: ");
-  // Serial1.print(ac1);
-  // Serial1.print(" ac2: ");
-  // Serial1.print(ac2);
-  // Serial1.print(" ac3: ");
-  // Serial1.print(ac3);
-  // Serial1.print(" ac4: ");
-  // Serial1.print(ac4);
-  // Serial1.print(" ac5: ");
-  // Serial1.print(ac5);
-  // Serial1.print(" ac6: ");
-  // Serial1.print(ac6);
-  // Serial1.print(" b1: ");
-  // Serial1.print(b1);
-  // Serial1.print(" b2: ");
-  // Serial1.print(b2);
-  // Serial1.print(" mb: ");
-  // Serial1.print(mb);
-  // Serial1.print(" mc: ");
-  // Serial1.print(mc);
-  // Serial1.print(" md: ");
-  // Serial1.println(md);
+  Serial1.print("ac1: ");
+  Serial1.print(cal.ac1);
+  Serial1.print(" ac2: ");
+  Serial1.print(cal.ac2);
+  Serial1.print(" ac3: ");
+  Serial1.print(cal.ac3);
+  Serial1.print(" ac4: ");
+  Serial1.print(cal.ac4);
+  Serial1.print(" ac5: ");
+  Serial1.print(cal.ac5);
+  Serial1.print(" ac6: ");
+  Serial1.print(cal.ac6);
+  Serial1.print(" b1: ");
+  Serial1.print(cal.b1);
+  Serial1.print(" b2: ");
+  Serial1.print(cal.b2);
+  Serial1.print(" mb: ");
+  Serial1.print(cal.mb);
+  Serial1.print(" mc: ");
+  Serial1.print(cal.mc);
+  Serial1.print(" md: ");
+  Serial1.println(cal.md);
 } 
 void BMP180::getUT() {
   bus.write(0xF4, 0x2E);
@@ -76,10 +61,6 @@ void BMP180::getUT() {
 }
 void BMP180::getUP() {
   bus.write(0xF4, 0x34 | (oss << 6));
-  // bus.write(0xF4, 0x34);
-  // bus.write(0xF4, 0x74);
-  // bus.write(0xF4, 0xB4);
-  // bus.write(0xF4, 0xF4);
   switch (oss) {
     case 3:
       delay(25.5);
@@ -94,11 +75,6 @@ void BMP180::getUP() {
       delay(4.5);
       break;
   }
-  // bus.wire.beginTransmission(BMP180_REG_ADDR);
-  // bus.wire.write(BMP180_REG_MEAS);
-  // bus.wire.endTransmission();
-  // bus.wire.requestFrom(BMP180_REG_ADDR, 3);
-  // up = (((bus.wire.read() << 16) | bus.wire.read() << 8) | bus.wire.read()) >> (8 - oss);
   up = bus.read24(BMP180_REG_MEAS) >> (8 - oss);
   Serial1.print("up: ");
   Serial1.println(up);

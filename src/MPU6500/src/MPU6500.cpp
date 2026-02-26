@@ -8,6 +8,18 @@ bool MPU6500::begin() {
   setAccelScale(accelScale);
   setGyroScale(gyroScale);
 
+  bus.readBurst(MPU6500_REG_OFFSET_ACCEL, rawAccelOffset, 6);
+  accelOffset.x = (rawData[0] << 8) | rawData[1];
+  accelOffset.y = (rawData[2] << 8) | rawData[3];
+  accelOffset.z = (rawData[4] << 8) | rawData[5];
+
+  bus.readBurst(MPU6500_REG_OFFSET_GYRO, rawGyroOffset, 6);
+  gyroOffset.x = (rawData[0] << 8) | rawData[1];
+  gyroOffset.y = (rawData[2] << 8) | rawData[3];
+  gyroOffset.z = (rawData[4] << 8) | rawData[5];
+
+  update();
+
   return true;
 }
 void MPU6500::update() {
