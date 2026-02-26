@@ -3,7 +3,7 @@
 #ifndef BMP180_H
 #define BMP180_H
 
-#include "../../fastutils.h"
+#include "../fastutils.h"
 
 #define BMP180_REG_ADDR 0x77
 #define BMP180_CHIP_ID  0x55

@@ -3,7 +3,7 @@
 #ifndef MPU6050_H
 #define MPU6050_H
 
-#include "../../fastutils.h"
+#include "../fastutils.h"
 
 #define MPU6050_CHIP_ID           0x70
 #define MPU6050_REG_ADDR          0x68
