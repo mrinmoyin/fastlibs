@@ -5,32 +5,19 @@
 
 #include "../../fastutils.h"
 
-#define MPU6500_CHIP_ID   0x70
-#define MPU6500_REG_ADDR  0x68
+#define MPU6500_CHIP_ID           0x70
+#define MPU6500_REG_ADDR          0x68
 #define MPU6500_REG_WHO_AM_I      0x75
 #define MPU6500_REG_DATA          0x3B 
 #define MPU6500_REG_CONFIG        0x1A 
 #define MPU6500_REG_CONFIG_GYRO   0x1B 
 #define MPU6500_REG_CONFIG_ACCEL  0x1C 
 #define MPU6500_REG_CONFIG_ACCEL2 0x1D 
-#define MPU6500_REG_OFFSET_GYRO   0x13 
 #define MPU6500_REG_OFFSET_ACCEL  0x77 
+#define MPU6500_REG_OFFSET_GYRO   0x13 
 #define MPU6500_REG_CTRL          0x6A
 #define MPU6500_REG_PWR_MGMT_1    0x6B
 #define MPU6500_REG_PWR_MGMT_2    0x6C
-
-enum AccelScale {
-  ACCEL_SCALE_2G  = 2,
-  ACCEL_SCALE_4G  = 4,
-  ACCEL_SCALE_8G  = 8,
-  ACCEL_SCALE_16G = 16,
-};
-enum GyroScale {
-  GYRO_SCALE_250DPS  = 250,
-  GYRO_SCALE_500DPS  = 500,
-  GYRO_SCALE_1000DPS = 1000,
-  GYRO_SCALE_2000DPS = 2000,
-};
 
 class MPU6500 {
   public:
@@ -43,14 +30,16 @@ class MPU6500 {
   bool begin();
   void update();
 
-  uint8_t accelScale;
-  uint16_t gyroScale;
-  XYZ accel, gyro;
+  XYZ accel, gyro, accelOffset, gyroOffset;
   uint16_t temp;
 
   private: 
     Bus bus;
     byte rawData[14];
+    byte rawAccelOffset[6];
+    byte rawGyroOffset[6];
+    uint8_t accelScale;
+    uint16_t gyroScale;
 
     void reset();
     void setAccelScale(uint8_t scale);
