@@ -275,11 +275,23 @@ void CC1101::setRxState() {
 };
 void CC1101::setTxState() {
   while (true) {
-    byte state = getState();
-    if (state == STATE_TX) break;
-    else if (state == STATE_TXFIFO_UNDERFLOW) flushTxBuff();
-    else if (state != (STATE_CALIB || STATE_SETTLING)) bus.strobe(CC1101_REG_TX);
+    switch (getState()) {
+      case STATE_TX:
+        return;
+      case STATE_TXFIFO_UNDERFLOW:
+        flushTxBuff();
+        break;
+      case !(STATE_CALIB || STATE_SETTLING):
+        bus.strobe(CC1101_REG_TX);
+        break;
+    }
     delayMicroseconds(50);
+
+    // byte state = getState();
+    // if (state == STATE_TX) break;
+    // else if (state == STATE_TXFIFO_UNDERFLOW) flushTxBuff();
+    // else if (state != (STATE_CALIB || STATE_SETTLING)) bus.strobe(CC1101_REG_TX);
+    // delayMicroseconds(50);
   }
 };
 void CC1101::setIdleState() {
