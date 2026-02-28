@@ -58,31 +58,6 @@
 #define CC1101_REG_PATABLE        0x3e
 #define CC1101_REG_FIFO           0x3f
 
-// #define CC1101_STATE_IDLE              0x00
-// #define CC1101_STATE_RX1               0x01
-// #define CC1101_STATE_TX                0x02
-// #define CC1101_STATE_FSTXON            0x03
-// #define CC1101_STATE_CALIB             0x04
-// #define CC1101_STATE_SETTLING          0x05
-// #define CC1101_STATE_RXFIFO_OVERFLOW   0x06
-// #define CC1101_STATE_TXFIFO_UNDERFLOW  0x07
-//
-// #define CC1101_MOD_2FSK     0x00
-// #define CC1101_MOD_GFSK     0x01
-// #define CC1101_MOD_ASK_OOK  0x03
-// #define CC1101_MOD_4FSK     0x04
-// #define CC1101_MOD_MSK      0x07
-//
-// #define CC1101_FREQ_BAND_315  0x00
-// #define CC1101_FREQ_BAND_433  0x01
-// #define CC1101_FREQ_BAND_868  0x02
-// #define CC1101_FREQ_BAND_915  0x03
-//
-// #define CC1101_POWER_1MW    0x04 /* 1mw / 0dbm */
-// #define CC1101_POWER_3MW    0x05 /* 3.16mw / 5dbm */
-// #define CC1101_POWER_5MW    0x06 /* 5.01mw / 7dbm */
-// #define CC1101_POWER_10MW   0x07 /* 10mw / 10dbm */
-
 enum CC1101_Modulation {
   CC1101_MOD_2FSK    = 0,
   CC1101_MOD_GFSK    = 1,
@@ -132,9 +107,6 @@ class CC1101 {
         int8_t miso = MISO,
         SPIClass &spi = SPI
         ):
-      bus(ss, miso, spi),
-      ss(ss),
-      miso(miso),
       mod(mod),
       freq(freq),
       drate(drate),
@@ -150,7 +122,10 @@ class CC1101 {
       isManchester(isManchester),
       isAppendStatus(isAppendStatus),
       isDataWhitening(isDataWhitening),
-      isVariablePktLen(isVariablePktLen) {};
+      isVariablePktLen(isVariablePktLen),
+      ss(ss),
+      miso(miso),
+      bus(ss, miso, spi) {};
 
   int8_t partnum = -1, version = -1;
   uint8_t rssi, lqi;

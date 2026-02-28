@@ -1,5 +1,5 @@
 #include <SPI.h>
-#include <FastRadio.h>
+#include <fastlibs.h>
 
 #define SCK 14
 #define MISO 12
@@ -8,7 +8,7 @@
 
 #define LED_PIN 2
 
-Radio radio;
+CC1101 radio;
 
 byte txBuff[4] = { 200, 201, 202, 203 };
 

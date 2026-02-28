@@ -1,15 +1,34 @@
 #include <SPI.h>
-#include <FastRadio.h>
-
-#define LED_PIN 5
+#include <fastlibs.h>
 
 #define MISO 21
 #define SCK 13
 #define MOSI 11
 #define SS 9
 
+#define LED_PIN 5
+
 SPIClass spi(FSPI);
-Radio radio(SS, SCK, MISO, MOSI, spi);
+CC1101 radio(CC1101_MOD_2FSK,
+    433.8,
+    4.0,
+    CC1101_POWER_1MW,
+    0,
+    4,
+    CC1101_SYNC_MODE_16_16,
+    0x1234,
+    64,
+    true, 
+    false,
+    true,
+    false,
+    true,
+    false,
+    false,
+    SS,
+    MISO,
+    spi);
+
 byte rxBuff[4];
 
 void setup() {
