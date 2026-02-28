@@ -116,8 +116,8 @@ class CC1101 {
         double freq = 433.8,
         double drate = 4.0,
         CC1101_PowerMW pwr = CC1101_POWER_1MW,
-        addr = 0,
-        pktLen = 4,
+        byte addr = 0,
+        uint8_t pktLen = 4,
         CC1101_SyncMode syncMode = CC1101_SYNC_MODE_16_16,
         uint16_t syncWord = 0x1234,
         uint8_t preambleLen = 64,
@@ -173,19 +173,20 @@ class CC1101 {
       STATE_RXFIFO_OVERFLOW   = 6,
       STATE_TXFIFO_UNDERFLOW  = 7,
     };
-    enum FreqBand {
-      FREQ_BAND_315 = 0,
-      FREQ_BAND_433 = 1,
-      FREQ_BAND_868 = 2,
-      FREQ_BAND_915 = 3,
+    enum CC1101_FreqBand {
+      CC1101_FREQ_BAND_315 = 0,
+      CC1101_FREQ_BAND_433 = 1,
+      CC1101_FREQ_BAND_868 = 2,
+      CC1101_FREQ_BAND_915 = 3,
     };
-    static const double FREQ_TABLE[][2] = {
-      [FREQ_BAND_315] = { 300.0, 348.0 },
-      [FREQ_BAND_433] = { 387.0, 464.0 },
-      [FREQ_BAND_868] = { 779.0, 891.5 },
-      [FREQ_BAND_915] = { 896.6, 928.0 },
+     
+    inline static const double freqTable[][2] = {
+      [CC1101_FREQ_BAND_315] = { 300.0, 348.0 },
+      [CC1101_FREQ_BAND_433] = { 387.0, 464.0 },
+      [CC1101_FREQ_BAND_868] = { 779.0, 891.5 },
+      [CC1101_FREQ_BAND_915] = { 896.6, 928.0 },
     };
-    static const double DRATE_TABLE[][2] = {
+    inline static const double drateTable[][2] = {
       [CC1101_MOD_2FSK]    = {  0.6, 500.0 },
       [CC1101_MOD_GFSK]    = {  0.6, 250.0 },
       [2]           = {  0.0, 0.0   }, 
@@ -195,11 +196,11 @@ class CC1101 {
       [6]           = {  0.0, 0.0   },
       [CC1101_MOD_MSK]     = { 26.0, 500.0 }
     };
-    static const uint8_t POWER_TABLE[][8] = {
-      [FREQ_BAND_315] = { 0x12, 0x0d, 0x1c, 0x34, 0x51, 0x85, 0xcb, 0xc2 },
-      [FREQ_BAND_433] = { 0x12, 0x0e, 0x1d, 0x34, 0x60, 0x84, 0xc8, 0xc0 },
-      [FREQ_BAND_868] = { 0x03, 0x0f, 0x1e, 0x27, 0x50, 0x81, 0xcb, 0xc2 },
-      [FREQ_BAND_915] = { 0x03, 0x0e, 0x1e, 0x27, 0x8e, 0xcd, 0xc7, 0xc0 },
+    inline static const uint8_t powerTable[][8] = {
+      [CC1101_FREQ_BAND_315] = { 0x12, 0x0d, 0x1c, 0x34, 0x51, 0x85, 0xcb, 0xc2 },
+      [CC1101_FREQ_BAND_433] = { 0x12, 0x0e, 0x1d, 0x34, 0x60, 0x84, 0xc8, 0xc0 },
+      [CC1101_FREQ_BAND_868] = { 0x03, 0x0f, 0x1e, 0x27, 0x50, 0x81, 0xcb, 0xc2 },
+      [CC1101_FREQ_BAND_915] = { 0x03, 0x0e, 0x1e, 0x27, 0x8e, 0xcd, 0xc7, 0xc0 },
     };
      
     Bus bus;
@@ -208,12 +209,11 @@ class CC1101 {
     CC1101_Modulation mod;
     CC1101_SyncMode syncMode;
     CC1101_PowerMW pwr;
-    FreqBand freqBand;
+    CC1101_FreqBand freqBand;
     double freq, drate;
     uint8_t pktLen, preambleLen;
     uint16_t syncWord;
     byte addr;
-    uint8_t state;
     bool isCRC, 
          isFEC,
          isAutoCalib,
@@ -238,16 +238,16 @@ class CC1101 {
     void setCRC(bool en);
     void setFEC(bool en);
     void setAddr(byte addr);
-    void setSync(SyncMode syncMode, uint16_t syncWord, uint8_t preambleLen);
+    void setSync(CC1101_SyncMode syncMode, uint16_t syncWord, uint8_t preambleLen);
     void setAutoCalib(bool en);
     void setManchester(bool en);
     void setAppendStatus(bool en);
     void setDataWhitening(bool en);
     void setVariablePktLen(bool en, uint8_t pktLen);
-    void setMod(Modulation mod);
+    void setMod(CC1101_Modulation mod);
     void setFreq(double freq);
     void setDrate(double drate);
-    void setPwr(FreqBand freqBand, PowerMW pwr, const uint8_t pwrTable[][8]);
+    void setPwr(CC1101_FreqBand freqBand, CC1101_PowerMW pwr, const uint8_t pwrTable[][8]);
     void setRxState();
     void setTxState();
     void setIdleState();
