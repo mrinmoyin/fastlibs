@@ -1,6 +1,12 @@
 #include "fastutils.h"
 
 #if isSPI
+  byte Bus::strobe(byte addr) {
+    spiStart();
+    byte data = spi.transfer(addr);
+    spiStop();
+    return data;
+  }
   uint8_t Bus::read(byte addr) {
     spiStart();
     spi.transfer(addr);
@@ -54,6 +60,12 @@
     spi.endTransaction();
   }
 #else
+  byte Bus::strobe(byte addr) {
+    wire.beginTransmission(i2cAddr);
+    byte data = wire.write(addr);
+    wire.endTransmission();
+    return data;
+  }
   uint8_t Bus::read(byte addr) {
     wire.beginTransmission(i2cAddr);
     wire.write(addr);

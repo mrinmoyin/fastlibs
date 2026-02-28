@@ -36,6 +36,7 @@ class Bus {
     SPISettings spiSettings = SPISettings();
     byte i2cAddr, ss, miso;
 
+    byte strobe(byte addr);
     uint8_t read(byte addr);
     uint16_t read16(byte addr);
     uint32_t read24(byte addr);
