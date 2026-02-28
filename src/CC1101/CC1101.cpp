@@ -116,9 +116,6 @@ void CC1101::flushTxBuff(){
   strobe(CC1101_REG_FTX);
   delayMicroseconds(50);
 };
-void CC1101::strobe(byte addr){
-  // state =(bus.strobe(addr) >> 4) & 0b00111;
-};
 byte CC1101::readStatus(byte addr){
   return bus.read(addr | CC1101_READ_BURST);
 };

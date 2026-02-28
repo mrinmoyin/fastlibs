@@ -201,7 +201,6 @@ class CC1101 {
     void reset();
     void flushRxBuff();
     void flushTxBuff();
-    void strobe(byte addr);
     byte readStatus(byte addr);
     void waitForState(State state = STATE_IDLE);
      
