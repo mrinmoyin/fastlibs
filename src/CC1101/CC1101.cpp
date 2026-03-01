@@ -253,45 +253,23 @@ void CC1101::setPwr(CC1101_FreqBand freqBand, CC1101_PowerMW pwr, const uint8_t 
   bus.write(CC1101_REG_PATABLE, pwrTable[freqBand][pwr]);
 };
 void CC1101::setRxState() {
+  byte state;
   while (true) {
-    switch (getState()) {
-      case STATE_RX:
-        return;
-      case STATE_RXFIFO_OVERFLOW:
-        flushRxBuff();
-        break;
-      case !(STATE_CALIB || STATE_SETTLING):
-        bus.strobe(CC1101_REG_RX);
-        break;
-    }
+    state = getState();
+    if (state == STATE_RX) break; 
+    else if (state == STATE_RXFIFO_OVERFLOW) flushRxBuff();
+    else if (state != (STATE_CALIB || STATE_SETTLING)) writeStatusReg(CC1101_REG_RX);
     delayMicroseconds(50);
-
-    // byte state = getState();
-    // if (state == STATE_RX) break; 
-    // else if (state == STATE_RXFIFO_OVERFLOW) flushRxBuff();
-    // else if (state != (STATE_CALIB || STATE_SETTLING)) writeStatusReg(CC1101_REG_RX);
-    // delayMicroseconds(50);
   }
 };
 void CC1101::setTxState() {
+  byte state;
   while (true) {
-    switch (getState()) {
-      case STATE_TX:
-        return;
-      case STATE_TXFIFO_UNDERFLOW:
-        flushTxBuff();
-        break;
-      case !(STATE_CALIB || STATE_SETTLING):
-        bus.strobe(CC1101_REG_TX);
-        break;
-    }
+    state = getState();
+    if (state == STATE_TX) break;
+    else if (state == STATE_TXFIFO_UNDERFLOW) flushTxBuff();
+    else if (state != (STATE_CALIB || STATE_SETTLING)) bus.strobe(CC1101_REG_TX);
     delayMicroseconds(50);
-
-    // byte state = getState();
-    // if (state == STATE_TX) break;
-    // else if (state == STATE_TXFIFO_UNDERFLOW) flushTxBuff();
-    // else if (state != (STATE_CALIB || STATE_SETTLING)) bus.strobe(CC1101_REG_TX);
-    // delayMicroseconds(50);
   }
 };
 void CC1101::setIdleState() {
