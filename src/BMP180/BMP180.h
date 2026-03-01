@@ -39,7 +39,7 @@ class BMP180 {
   public:
     BMP180(uint8_t oss = 0, TwoWire &wire = Wire): oss(oss), bus(BMP180_REG_ADDR, wire) {};
 
-  float alt, temp, press;
+  float temp, press, alt;
 
   bool begin();
   void update();
@@ -47,19 +47,15 @@ class BMP180 {
   private: 
     Bus bus;
     uint8_t oss;
-
-    byte calData[22];
     CalParams cal;
 
-    int32_t x1, x2, x3, b3, b5, b6;
-    uint32_t b4, b7;
-    int32_t ut, up, t, p;
-
     void getCP(); 
-    void getUT();
-    void getUP();
-    int32_t getTemp(); 
-    int32_t getPress(); 
+    int32_t getUT();
+    int32_t getUP();
+    int32_t getB5();
+    float getTemp(int32_t b5); 
+    int32_t getPress(int32_t b5); 
+    int32_t getAlt(); 
 };
 
 #endif
