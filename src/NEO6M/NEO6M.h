@@ -9,7 +9,8 @@
 
 class NEO6M {
   public:
-    NEO6M(UART &ss = Serial): ss(ss) {};
+    // NEO6M(UART &ss = Serial): ss(ss) {}; 
+    NEO6M(HardwareSerial &ss = Serial): ss(ss) {}; 
 
     // long double time, lat, lon;
     double time, lat, lon;
@@ -19,7 +20,7 @@ class NEO6M {
     bool update();
 
   private: 
-    UART &ss;
+    HardwareSerial &ss;
 
     void readLine(char *delemeter, std::string *buff, size_t size);
 };

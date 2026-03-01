@@ -113,7 +113,7 @@ void CC1101::flushRxBuff(){
 };
 void CC1101::flushTxBuff(){
   if(getState() != (STATE_IDLE || STATE_TXFIFO_UNDERFLOW)) return;
-  strobe(CC1101_REG_FTX);
+  bus.strobe(CC1101_REG_FTX);
   delayMicroseconds(50);
 };
 byte CC1101::readStatus(byte addr){
@@ -258,7 +258,7 @@ void CC1101::setRxState() {
     state = getState();
     if (state == STATE_RX) break; 
     else if (state == STATE_RXFIFO_OVERFLOW) flushRxBuff();
-    else if (state != (STATE_CALIB || STATE_SETTLING)) writeStatusReg(CC1101_REG_RX);
+    else if (state != (STATE_CALIB || STATE_SETTLING)) bus.strobe(CC1101_REG_RX);
     delayMicroseconds(50);
   }
 };

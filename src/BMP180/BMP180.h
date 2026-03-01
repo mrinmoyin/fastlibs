@@ -58,8 +58,8 @@ class BMP180 {
     void getCP(); 
     void getUT();
     void getUP();
-    void getTemp(); 
-    void getPress(); 
+    int32_t getTemp(); 
+    int32_t getPress(); 
 };
 
 #endif
