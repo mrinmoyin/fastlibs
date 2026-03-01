@@ -9,13 +9,20 @@ bool BMP180::begin() {
   return true;
 }
 void BMP180::update() {
-  getUT();
-  getUP();
-  getTemp();
-  getPress();
+  int32_t b5 = getB5();
+  temp = getTemp(b5);
+  press = getPress(b5);
+  alt = getAlt();
+  Serial.print(" temp: ");
+  Serial.print(temp);
+  Serial.print(" press: ");
+  Serial.print(press);
+  Serial.print(" alt: ");
+  Serial.println(alt);
 }
 
 void BMP180::getCP() {
+  byte calData[22];
   bus.readBurst(0xAA, calData, 22);
   cal.ac1 = (calData[0] << 8) | calData[1];
   cal.ac2 = (calData[2] << 8) | calData[3];
@@ -29,37 +36,35 @@ void BMP180::getCP() {
   cal.mc = (calData[18] << 8) | calData[19];
   cal.md = (calData[20] << 8) | calData[21];
 
-  Serial1.print("ac1: ");
-  Serial1.print(cal.ac1);
-  Serial1.print(" ac2: ");
-  Serial1.print(cal.ac2);
-  Serial1.print(" ac3: ");
-  Serial1.print(cal.ac3);
-  Serial1.print(" ac4: ");
-  Serial1.print(cal.ac4);
-  Serial1.print(" ac5: ");
-  Serial1.print(cal.ac5);
-  Serial1.print(" ac6: ");
-  Serial1.print(cal.ac6);
-  Serial1.print(" b1: ");
-  Serial1.print(cal.b1);
-  Serial1.print(" b2: ");
-  Serial1.print(cal.b2);
-  Serial1.print(" mb: ");
-  Serial1.print(cal.mb);
-  Serial1.print(" mc: ");
-  Serial1.print(cal.mc);
-  Serial1.print(" md: ");
-  Serial1.println(cal.md);
+  Serial.print("ac1: ");
+  Serial.print(cal.ac1);
+  Serial.print(" ac2: ");
+  Serial.print(cal.ac2);
+  Serial.print(" ac3: ");
+  Serial.print(cal.ac3);
+  Serial.print(" ac4: ");
+  Serial.print(cal.ac4);
+  Serial.print(" ac5: ");
+  Serial.print(cal.ac5);
+  Serial.print(" ac6: ");
+  Serial.print(cal.ac6);
+  Serial.print(" b1: ");
+  Serial.print(cal.b1);
+  Serial.print(" b2: ");
+  Serial.print(cal.b2);
+  Serial.print(" mb: ");
+  Serial.print(cal.mb);
+  Serial.print(" mc: ");
+  Serial.print(cal.mc);
+  Serial.print(" md: ");
+  Serial.println(cal.md);
 } 
-void BMP180::getUT() {
+int32_t BMP180::getUT() {
   bus.write(0xF4, 0x2E);
   delay(4.5);
-  ut = bus.read16(BMP180_REG_MEAS);
-  Serial1.print("ut: ");
-  Serial1.println(ut);
+  return bus.read16(BMP180_REG_MEAS);
 }
-void BMP180::getUP() {
+int32_t BMP180::getUP() {
   bus.write(0xF4, 0x34 | (oss << 6));
   switch (oss) {
     case 3:
@@ -75,69 +80,57 @@ void BMP180::getUP() {
       delay(4.5);
       break;
   }
-  up = bus.read24(BMP180_REG_MEAS) >> (8 - oss);
-  Serial1.print("up: ");
-  Serial1.println(up);
+  return bus.read24(BMP180_REG_MEAS) >> (8 - oss);
 }
-void BMP180::getTemp() {
-  x1 = ((ut - cal.ac6) * cal.ac5) >> 15;
-  x2 = (cal.mc << 11) / (x1 + cal.md);
-  b5 = x1 + x2;
-  t = (b5 + 8) >> 4;
-  Serial1.print("x1: ");
-  Serial1.print(x1);
-  Serial1.print(" x2: ");
-  Serial1.print(x2);
-  Serial1.print(" b5: ");
-  Serial1.print(b5);
-  Serial1.print(" t: ");
-  Serial1.println(t);
+int32_t BMP180::getB5() {
+  // int32_t x1 = ((getUT() - cal.ac6) * cal.ac5) >> 15;
+  // int32_t x2 = (cal.mc << 11) / (x1 + cal.md);
+  // return x1 + x2;
+
+  int32_t x1 = ((getUT() - cal.ac6) * cal.ac5) / pow(2, 15);
+  int32_t x2 = (cal.mc * pow(2, 11)) / (x1 + cal.md);
+  return x1 + x2;
 }
-void BMP180::getPress() {
+float BMP180::getTemp(int32_t b5) {
+  return ((b5 + 8) / pow(2, 4)) / 10.0;
+}
+int32_t BMP180::getPress(int32_t b5) {
+  int32_t x1, x2, x3, b3, b6, p;
+  uint32_t b4, b7;
+  // b6 = b5 - 4000;
+  // x1 = (cal.b2 * (b6 * b6 >> 12)) >> 11;
+  // x2 = (cal.ac2 * b6) >> 11;
+  // x3 = x1 + x2;
+  // b3 = ((((cal.ac1 * 4) + x3) << oss) + 2) / 4;
+  // x1 = (cal.ac3 * b6) >> 13;
+  // x2 = (cal.b1 * ((b6 * b6) >> 12)) >> 16;
+  // x3 = ((x1 + x2) + 2) >> 2;
+  // b4 = (cal.ac4 * (uint32_t)(x3 + 32768)) >> 15; 
+  // b7 = (uint32_t)(getUP() - b3) * (50000 >> oss);
+  // if (b7 < 0x80000000) p = (b7 * 2) / b4;
+  // else p = (b7 / b4) * 2;
+  // x1 = (p >> 8) * (p >> 8);
+  // x1 = (x1 * 3038) >> 16;
+  // x2 = (-7357 * p) >> 16;
+  // return (p + ((x1 + x2) + 3791)) >> 4;
+
   b6 = b5 - 4000;
-  Serial1.print("b6: ");
-  Serial1.print(b6);
-  x1 = (cal.b2 * (b6 * b6 >> 12)) >> 11;
-  Serial1.print(" x1: ");
-  Serial1.print(x1);
-  x2 = (cal.ac2 * b6) >> 11;
-  Serial1.print(" x2: ");
-  Serial1.print(x2);
+  x1 = (cal.b2 * (b6 * b6 / pow(2, 12))) / pow(2, 11);
+  x2 = cal.ac2 * b6 / pow(2, 11);
   x3 = x1 + x2;
-  Serial1.print(" x3: ");
-  Serial1.print(x3);
-  b3 = ((((cal.ac1 * 4) + x3) << oss) + 2) / 4;
-  Serial1.print(" b3: ");
-  Serial1.print(b3);
-  x1 = (cal.ac3 * b6) >> 13;
-  Serial1.print(" x1: ");
-  Serial1.print(x1);
-  x2 = (cal.b1 * ((b6 * b6) >> 12)) >> 16;
-  Serial1.print(" x2: ");
-  Serial1.print(x2);
-  x3 = ((x1 + x2) + 2) >> 2;
-  Serial1.print(" x3: ");
-  Serial1.print(x3);
-  b4 = (cal.ac4 * (uint32_t)(x3 + 32768)) >> 15; 
-  Serial1.print(" b4: ");
-  Serial1.print(b4);
-  b7 = (uint32_t)(up - b3) * (50000 >> oss);
-  Serial1.print(" b7: ");
-  Serial1.print(b7);
+  b3 = (((cal.ac1 * 4 + x3) << oss) + 2) / 4;
+  x1 = cal.ac3 * b6 / pow(2, 13);
+  x2 = (cal.b1 * (b6 * b6 / pow(2, 12))) / pow(2, 10);
+  x3 = ((x1 + x2) + 2) / pow(2, 2);
+  b4 = cal.ac4 * (uint32_t)(x3 + 32768) / pow(2, 15); 
+  b7 = ((uint32_t)getUP() - b3) * (50000 >> oss);
   if (b7 < 0x80000000) p = (b7 * 2) / b4;
   else p = (b7 / b4) * 2;
-  Serial1.print(" p: ");
-  Serial1.print(p);
-  x1 = (p >> 8) * (p >> 8);
-  Serial1.print(" x1: ");
-  Serial1.print(x1);
-  x1 = (x1 * 3038) >> 16;
-  Serial1.print(" x1: ");
-  Serial1.print(x1);
-  x2 = (-7357 * p) >> 16;
-  Serial1.print(" x2: ");
-  Serial1.print(x2);
-  p = (p + ((x1 + x2) + 3791)) >> 4;
-  Serial1.print(" p: ");
-  Serial1.println(p);
+  x1 = (p / pow(2, 8)) * (p / pow(2, 8));
+  x1 = (x1 * 3038) / pow(2, 16);
+  x2 = (-7357 * p) / pow(2, 16);
+  return p + (x1 + x2 + 3791) / pow(2, 4);
 }
+int32_t BMP180::getAlt() {
+  return 44330 * (1 - pow(press / 1013.25, 1 / 5.255));
+} 

@@ -1,5 +1,5 @@
 #include <SPI.h>
-#include <FastRadio.h>
+#include <fastlibs.h>
 
 #define FSPI_MOSI 10
 #define FSPI_MISO 20
@@ -13,12 +13,6 @@
 
 TaskHandle_t txTaskHandle;
 TaskHandle_t rxTaskHandle;
-
-SPIClass fspi(FSPI);
-SPIClass hspi(HSPI);
-
-CC1101 txRadio(FSPI_SCK, FSPI_MISO, FSPI_MOSI, TX_SS, fspi);
-CC1101 rxRadio(HSPI_SCK, HSPI_MISO, HSPI_MOSI, RX_SS, hspi);
 
 void setup() {
   Serial.begin(115200);
@@ -49,6 +43,27 @@ void setup() {
 void txTask(void *pvParameters) {
   Serial.print("TX Task running on core ");
   Serial.println(xPortGetCoreID());
+
+  SPIClass fspi(FSPI);
+  CC1101 txRadio(CC1101_MOD_2FSK,
+      433.8,
+      4.0,
+      CC1101_POWER_1MW,
+      0,
+      4,
+      CC1101_SYNC_MODE_16_16,
+      0x1234,
+      64,
+      true, 
+      false,
+      true,
+      false,
+      true,
+      false,
+      false,
+      TX_SS,
+      FSPI_MISO,
+      fspi);
 
   pinMode(FSPI_SCK, OUTPUT);
   pinMode(FSPI_MISO, INPUT);
@@ -82,6 +97,27 @@ void txTask(void *pvParameters) {
 void rxTask(void *pvParameters) {
   Serial.print("RX Task running on core ");
   Serial.println(xPortGetCoreID());
+
+  SPIClass hspi(HSPI);
+  CC1101 rxRadio(CC1101_MOD_2FSK,
+      433.8,
+      4.0,
+      CC1101_POWER_1MW,
+      0,
+      4,
+      CC1101_SYNC_MODE_16_16,
+      0x1234,
+      64,
+      true, 
+      false,
+      true,
+      false,
+      true,
+      false,
+      false,
+      RX_SS, 
+      HSPI_MISO, 
+      hspi);
 
   pinMode(HSPI_SCK, OUTPUT);
   pinMode(HSPI_MISO, INPUT);
