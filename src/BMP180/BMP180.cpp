@@ -3,16 +3,15 @@
 bool BMP180::begin() {
   if (bus.read(BMP180_REG_CHIP_ID) != BMP180_CHIP_ID) return false;
 
-  getCP();
-  update();
-
   return true;
 }
 void BMP180::update() {
-  int32_t b5 = getB5();
-  temp = getTemp(b5);
-  press = getPress(b5);
-  alt = getAlt();
+  static const CalParams cal = getCP();
+
+  int32_t b5 = getB5(cal);
+  this->temp = getTemp(b5);
+  this->press = getPress(b5, cal);
+  this->alt = getAlt(this->press);
   Serial.print(" temp: ");
   Serial.print(temp);
   Serial.print(" press: ");
@@ -21,7 +20,8 @@ void BMP180::update() {
   Serial.println(alt);
 }
 
-void BMP180::getCP() {
+CalParams BMP180::getCP() {
+  CalParams cal;
   byte calData[22];
   bus.readBurst(0xAA, calData, 22);
   cal.ac1 = (calData[0] << 8) | calData[1];
@@ -58,6 +58,7 @@ void BMP180::getCP() {
   Serial.print(cal.mc);
   Serial.print(" md: ");
   Serial.println(cal.md);
+  return cal;
 } 
 int32_t BMP180::getUT() {
   bus.write(0xF4, 0x2E);
@@ -82,7 +83,7 @@ int32_t BMP180::getUP() {
   }
   return bus.read24(BMP180_REG_MEAS) >> (8 - oss);
 }
-int32_t BMP180::getB5() {
+int32_t BMP180::getB5(const CalParams cal) {
   // int32_t x1 = ((getUT() - cal.ac6) * cal.ac5) >> 15;
   // int32_t x2 = (cal.mc << 11) / (x1 + cal.md);
   // return x1 + x2;
@@ -94,9 +95,10 @@ int32_t BMP180::getB5() {
 float BMP180::getTemp(int32_t b5) {
   return ((b5 + 8) / pow(2, 4)) / 10.0;
 }
-int32_t BMP180::getPress(int32_t b5) {
+int32_t BMP180::getPress(int32_t b5, const CalParams cal) {
   int32_t x1, x2, x3, b3, b6, p;
   uint32_t b4, b7;
+
   // b6 = b5 - 4000;
   // x1 = (cal.b2 * (b6 * b6 >> 12)) >> 11;
   // x2 = (cal.ac2 * b6) >> 11;
@@ -131,6 +133,6 @@ int32_t BMP180::getPress(int32_t b5) {
   x2 = (-7357 * p) / pow(2, 16);
   return p + (x1 + x2 + 3791) / pow(2, 4);
 }
-int32_t BMP180::getAlt() {
-  return 44330 * (1 - pow(press / 1013.25, 1 / 5.255));
+int32_t BMP180::getAlt(int32_t p) {
+  return 44330 * (1 - pow(p / 1013.25, 1 / 5.255));
 } 

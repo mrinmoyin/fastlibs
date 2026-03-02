@@ -47,15 +47,14 @@ class BMP180 {
   private: 
     Bus bus;
     uint8_t oss;
-    CalParams cal;
 
-    void getCP(); 
+    CalParams getCP(); 
     int32_t getUT();
     int32_t getUP();
-    int32_t getB5();
+    int32_t getB5(const CalParams cal);
     float getTemp(int32_t b5); 
-    int32_t getPress(int32_t b5); 
-    int32_t getAlt(); 
+    int32_t getPress(int32_t b5, const CalParams cal); 
+    int32_t getAlt(int32_t p); 
 };
 
 #endif
