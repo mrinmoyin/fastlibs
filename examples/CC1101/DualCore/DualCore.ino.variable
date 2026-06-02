@@ -49,22 +49,22 @@ void txTask(void *pvParameters) {
   Serial.println(xPortGetCoreID());
 
   SPIClass fspi(FSPI);
-  CC1101 radio(CC1101_MOD_2FSK,         // mod
+  CC1101 radio(CC1101_MOD_2FSK,          // mod
                433.8,                   // freq
                10,                      // drate
                CC1101_POWER_3MW,        // pwr
                0,                       // addr
-               4,                      // pktlen
+               64,                      // pktlen
                CC1101_SYNC_MODE_16_16,  // sync mode
                0x1234,                  // sync word
                64,                      // preamble length
                true,                    // crc
-               false,                   // fec
+               false,                    // fec
                true,                    // auto calib
-               true,                   // manchester
-               true,                    // append status
-               false,                   // data whitening
-               false,                   // variable packet length
+               false,                   // manchester
+               true,                   // append status
+               false,                    // data whitening
+               true,                    // variable packet length
                TX_SS,                   // ss/cs pin
                FSPI_MISO,               // miso pin
                fspi);                   // spi class
@@ -86,11 +86,12 @@ void txTask(void *pvParameters) {
   Serial.printf("TX Radio initialized! [%d, %d]", radio.partnum, radio.version);
   Serial.println();
 
-  byte buff[4] = { 200, 201, 202, 203 };
+  int counter = 0;
 
   while (true) {
-    if (radio.write(buff, 4)) {
-      Serial.printf("Sending pkt: [%d, %d, %d, %d]", buff[0], buff[1], buff[2], buff[3]);
+    String data = "Namaste #" + (String)(counter++);
+    if (radio.write((uint8_t *)data.c_str())) {
+      Serial.print("Sending: " + data);
     } else {
       Serial.print("Error sending tx packet");
     }
@@ -105,22 +106,22 @@ void rxTask(void *pvParameters) {
   Serial.println(xPortGetCoreID());
 
   SPIClass hspi(HSPI);
-  CC1101 radio(CC1101_MOD_2FSK,         // mod
+  CC1101 radio(CC1101_MOD_2FSK,          // mod
                433.8,                   // freq
                10,                      // drate
                CC1101_POWER_3MW,        // pwr
                0,                       // addr
-               4,                      // pktlen
+               64,                      // pktlen
                CC1101_SYNC_MODE_16_16,  // sync mode
                0x1234,                  // sync word
                64,                      // preamble length
                true,                    // crc
-               false,                   // fec
+               false,                    // fec
                true,                    // auto calib
-               true,                   // manchester
-               true,                    // append status
-               false,                   // data whitening
-               false,                   // variable packet length
+               false,                   // manchester
+               true,                   // append status
+               false,                    // data whitening
+               true,                    // variable packet length
                RX_SS,                   // ss/cs pin
                HSPI_MISO,               // miso pin
                hspi);                   // spi class
@@ -142,14 +143,15 @@ void rxTask(void *pvParameters) {
   Serial.printf("RX Radio initialized! [%d, %d]", radio.partnum, radio.version);
   Serial.println();
 
-  byte buff[4];
+  char data[64];
 
   while (true) {
-    if (radio.read(buff)) {
-      Serial.printf("Received: [%d, %d, %d, %d], Rssi: %d, Lqi: %d", buff[0], buff[1], buff[2], buff[3], radio.rssi, radio.lqi);
-    // } else {
-    //   Serial.print("Error receiving rx pkt");
-      Serial.println();
+    if (radio.readUntil((uint8_t *)data, 2000)) {
+      Serial.print("Received: ");
+      Serial.print(data);
+    } else {
+      Serial.print("Error receiving rx pkt");
     }
+    Serial.println();
   }
 }

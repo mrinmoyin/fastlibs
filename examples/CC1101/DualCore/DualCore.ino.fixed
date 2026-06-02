@@ -54,14 +54,14 @@ void txTask(void *pvParameters) {
                10,                      // drate
                CC1101_POWER_3MW,        // pwr
                0,                       // addr
-               4,                      // pktlen
+               64,                      // pktlen
                CC1101_SYNC_MODE_16_16,  // sync mode
                0x1234,                  // sync word
                64,                      // preamble length
                true,                    // crc
                false,                   // fec
                true,                    // auto calib
-               true,                   // manchester
+               false,                   // manchester
                true,                    // append status
                false,                   // data whitening
                false,                   // variable packet length
@@ -110,14 +110,14 @@ void rxTask(void *pvParameters) {
                10,                      // drate
                CC1101_POWER_3MW,        // pwr
                0,                       // addr
-               4,                      // pktlen
+               64,                      // pktlen
                CC1101_SYNC_MODE_16_16,  // sync mode
                0x1234,                  // sync word
                64,                      // preamble length
                true,                    // crc
                false,                   // fec
                true,                    // auto calib
-               true,                   // manchester
+               false,                   // manchester
                true,                    // append status
                false,                   // data whitening
                false,                   // variable packet length
@@ -145,11 +145,11 @@ void rxTask(void *pvParameters) {
   byte buff[4];
 
   while (true) {
-    if (radio.read(buff)) {
+    if (radio.readUntil(buff, 4, 2000)) {
       Serial.printf("Received: [%d, %d, %d, %d], Rssi: %d, Lqi: %d", buff[0], buff[1], buff[2], buff[3], radio.rssi, radio.lqi);
-    // } else {
-    //   Serial.print("Error receiving rx pkt");
-      Serial.println();
+    } else {
+      Serial.print("Error receiving rx pkt");
     }
+    Serial.println();
   }
 }
