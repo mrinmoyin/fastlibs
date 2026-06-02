@@ -28,9 +28,9 @@ class Bus<false> {
     byte i2cAddr;
     TwoWire &wire;
 
-    byte strobe(byte addr) {
+    uint8_t strobe(byte addr) {
       wire.beginTransmission(i2cAddr);
-      byte data = wire.write(addr);
+      uint8_t data = wire.write(addr);
       wire.endTransmission();
       return data;
     }
@@ -58,7 +58,7 @@ class Bus<false> {
     uint8_t readField(byte addr, byte hi, byte lo) {
       return read((addr) >> lo) & ((1 << (hi - lo + 1)) -1);
     }
-    void readBurst(byte addr, byte *buff, uint8_t len) {
+    void readBurst(byte addr, uint8_t *buff, size_t len) {
       wire.beginTransmission(i2cAddr);
       wire.write(addr);
       wire.endTransmission();
@@ -67,21 +67,21 @@ class Bus<false> {
         buff[i] = wire.read();
       }
     }
-    void write(byte addr, byte val) {
+    void write(byte addr, uint8_t val) {
       wire.beginTransmission(i2cAddr);
       wire.write(addr);
       wire.write(val);
       wire.endTransmission();
     }
-    void writeField(byte addr, byte hi, byte lo, byte val) {
+    void writeField(byte addr, byte hi, byte lo, uint8_t val) {
       uint8_t mask = ((1 << (hi - lo + 1)) -1) << lo;
       write(addr, (read(addr) & ~mask) | ((val <<= lo) & mask));
     }
-    void writeField(byte addr, byte readMask, byte writeMask, byte hi, byte lo, byte val) {
+    void writeField(byte addr, byte readMask, byte writeMask, byte hi, byte lo, uint8_t val) {
       uint8_t mask = ((1 << (hi - lo + 1)) -1) << lo;
       write(addr | writeMask, (read(addr | readMask) & ~mask) | ((val <<= lo) & mask));
     }
-    void writeBurst(byte addr, byte *buff, uint8_t len) {
+    void writeBurst(byte addr, uint8_t *buff, size_t len) {
       wire.beginTransmission(i2cAddr);
       wire.write(addr);
       for (uint8_t i = 0; i < len; i++) {
@@ -106,9 +106,9 @@ class Bus<true> {
     SPIClass &spi;
     SPISettings spiSettings;
 
-    byte strobe(byte addr) {
+    uint8_t strobe(byte addr) {
       spiStart();
-      byte data = spi.transfer(addr);
+      uint8_t data = spi.transfer(addr);
       spiStop();
       return data;
     }
@@ -144,21 +144,21 @@ class Bus<true> {
       }
       spiStop();
     }
-    void write(byte addr, byte val) {
+    void write(byte addr, uint8_t val) {
       spiStart();
       spi.transfer(addr);
       spi.transfer(val);
       spiStop();
     }
-    void writeField(byte addr, byte hi, byte lo, byte val) {
+    void writeField(byte addr, byte hi, byte lo, uint8_t val) {
       uint8_t mask = ((1 << (hi - lo + 1)) -1) << lo;
       write(addr, (read(addr) & ~mask) | ((val <<= lo) & mask));
     }
-    void writeField(byte addr, byte readMask, byte writeMask, byte hi, byte lo, byte val) {
+    void writeField(byte addr, byte readMask, byte writeMask, byte hi, byte lo, uint8_t val) {
       uint8_t mask = ((1 << (hi - lo + 1)) -1) << lo;
       write(addr | writeMask, (read(addr | readMask) & ~mask) | ((val <<= lo) & mask));
     }
-    void writeBurst(byte addr, byte *buff, uint8_t len) {
+    void writeBurst(byte addr, uint8_t *buff, size_t len) {
       spiStart();
       spi.transfer(addr);
       for (uint8_t i = 0; i < len; i++) {

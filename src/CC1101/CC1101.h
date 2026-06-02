@@ -204,7 +204,6 @@ class CC1101 {
     void reset();
     void flushRxBuff();
     void flushTxBuff();
-    byte readStatus(byte addr);
     void waitForState(State state = STATE_IDLE);
      
     byte getState();
@@ -242,11 +241,12 @@ class CC1101 {
 
     uint8_t strobe(byte addr);
     uint8_t readReg(byte addr);
-    void writeReg(byte addr, uint8_t val);
+    uint8_t readStatus(byte addr);
     uint8_t readRegField(byte addr, byte lo, byte hi);
+    void readRegBurst(byte addr, uint8_t *buff, size_t len);
+    void writeReg(byte addr, uint8_t val);
     void writeRegField(byte addr, byte lo, byte hi, uint8_t val);
-    void readRegBurst(byte addr, byte *buff, uint8_t len);
-    void writeRegBurst(byte addr, byte *buff, uint8_t len);
+    void writeRegBurst(byte addr, uint8_t *buff, size_t len);
 };
 
 #endif
