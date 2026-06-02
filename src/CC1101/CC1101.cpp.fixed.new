@@ -28,15 +28,21 @@ bool CC1101::begin() {
   return true;
 }
 
-bool CC1101::read(uint8_t *buff) {
+bool CC1101::read(uint8_t *buff){
   if (getState() == STATE_RX) return false;
-  bool isRead = readRxFifo(buff);
+  bool isRead = readRxFifo(buff, pktLen);
   setIdleState();
   flushRxBuff();
   setRxState();
   return isRead;
-};
-// bool CC1101::read(uint8_t *buff){
+  // if (bus.readField(CC1101_REG_RXBYTES | CC1101_READ_BURST, 6, 0)) {
+  //   readRxFifo(buff, pktLen);
+  //   setIdleState();
+  //   flushRxBuff();
+  //   setRxState();
+  //   return true;
+  // }
+
   // uint8_t len;
   // setIdleState();
   // flushRxBuff();
@@ -53,122 +59,114 @@ bool CC1101::read(uint8_t *buff) {
   // if (!readRxFifo(buff, len)) return false; // crc mismatch
   // waitForState();
   // return true;
-// };
-// bool CC1101::read(uint8_t *buff, uint8_t len){
-//   setIdleState();
-//   setPktLenMode(false);
-//   setPktLen(len);
-//   flushRxBuff();
-//   setRxState();
-//   waitForRxBytes(len);
-//   if (!readRxFifo(buff, len)) return false; // crc mismatch
-//   waitForState();
-//   return true;
-// };
-// bool CC1101::readUntil(uint8_t *buff, size_t timeoutMs){
-//   uint8_t len;
-//   setIdleState();
-//   flushRxBuff();
-//   setRxState();
-//   if (!isVariablePktLen) {
-//     len = pktLen;
-//   } else {
-//     while(!enoughRxBytes(1));
-//     len = bus.read(CC1101_REG_FIFO | CC1101_READ);
-//   }
-//   if (!waitForRxBytes(len, timeoutMs)) return false; //timeout
-//   if (!readRxFifo(buff, len)) return false; // crc mismatch
-//   waitForState();
-//   return true;
-// };
-// bool CC1101::readUntil(uint8_t *buff, uint8_t len, size_t timeoutMs){
-//   setIdleState();
-//   setPktLenMode(false);
-//   setPktLen(len);
-//   flushRxBuff();
-//   setRxState();
-//   if (!waitForRxBytes(len, timeoutMs)) return false; //timeout
-//   if (!readRxFifo(buff, len)) return false; // crc mismatch
-//   waitForState();
-//   return true;
-// };
-// bool CC1101::write(uint8_t *buff) {
-//   uint8_t len = !isVariablePktLen ? pktLen : sizeof(buff);
-//   setIdleState();
-//   flushTxBuff();
-//   setTxState();
-//   writeTxFifo(buff, len);
-//   waitForState();
-//   return true;
-// };
-bool CC1101::write(uint8_t *buff) {
+};
+bool CC1101::read(uint8_t *buff, uint8_t len){
   setIdleState();
-  flushTxBuff();
-  setTxState();
-  writeTxFifo(buff);
+  setPktLenMode(false);
+  setPktLen(len);
+  flushRxBuff();
+  setRxState();
+  waitForRxBytes(len);
+  if (!readRxFifo(buff, len)) return false; // crc mismatch
   waitForState();
   return true;
 };
-// bool CC1101::write(uint8_t *buff, uint8_t len){
-//   setIdleState();
-//   setPktLen(len);
-//   flushTxBuff();
-//   setTxState();
-//   writeTxFifo(buff, len);
-//   waitForState();
-//   return true;
-// };
-// bool CC1101::link(uint8_t *txBuff, uint8_t *rxBuff, size_t timeoutMs) {
-//   uint32_t timer = millis();
-//   setIdleState();
-//   flushTxBuff();
-//   setTxState();
-//   writeTxFifo(txBuff, pktLen);
-//   waitForState();
-//   flushRxBuff();
-//   setRxState();
-//   while (!enoughRxBytes(pktLen)) {
-//     if (timer + timeoutMs < millis()) {
-//       return false; // timeout
-//     }
-//     delay(1); // avoid watchdog
-//   }
-//   readRxFifo(rxBuff, pktLen);
-//   waitForState();
-//   return true;
-// };
-// void CC1101::link2(uint8_t *txBuff, uint8_t *rxBuff, size_t timeoutMs) {
-//   uint32_t timer;
-//   setIdleState();
-//   setTwoWay();
-//   setTxState();
-//   while(true) {
-//     flushTxBuff();
-//     writeTxFifo(txBuff, pktLen);
-//     waitForState(STATE_RX);
-//     Serial.println("Sent packet.");
-//     flushRxBuff();
-//     timer = millis();
-//     while (true) { /* state goes to tx even when fifo is empty */
-//       Serial.print("state: ");
-//       Serial.println(getState());
-//       if (bus.readField(CC1101_REG_RXBYTES | CC1101_READ_BURST, 6, 0) != 0) {
-//         Serial.println("rxbytes > 0");
-//         readRxFifo(rxBuff, pktLen);
-//         waitForState(STATE_TX);
-//         Serial.println("Received packet.");
-//         break;
-//       // } else if (timer + timeoutMs < millis()) {
-//       //   setIdleState();
-//       //   setTxState();
-//       //   Serial.println("timeout");
-//       //   break;
-//       // } else {
-//         delay(500);
-//       }
-//     }
-//   }
-// };
+bool CC1101::readUntil(uint8_t *buff, size_t timeoutMs){
+  uint8_t len;
+  setIdleState();
+  flushRxBuff();
+  setRxState();
+  if (!isVariablePktLen) {
+    len = pktLen;
+  } else {
+    while(!enoughRxBytes(1));
+    len = bus.read(CC1101_REG_FIFO | CC1101_READ);
+  }
+  if (!waitForRxBytes(len, timeoutMs)) return false; //timeout
+  if (!readRxFifo(buff, len)) return false; // crc mismatch
+  waitForState();
+  return true;
+};
+bool CC1101::readUntil(uint8_t *buff, uint8_t len, size_t timeoutMs){
+  setIdleState();
+  setPktLenMode(false);
+  setPktLen(len);
+  flushRxBuff();
+  setRxState();
+  if (!waitForRxBytes(len, timeoutMs)) return false; //timeout
+  if (!readRxFifo(buff, len)) return false; // crc mismatch
+  waitForState();
+  return true;
+};
+bool CC1101::write(uint8_t *buff){
+  uint8_t len = !isVariablePktLen ? pktLen : sizeof(buff);
+  setIdleState();
+  flushTxBuff();
+  setTxState();
+  writeTxFifo(buff, len);
+  waitForState();
+  return true;
+};
+bool CC1101::write(uint8_t *buff, uint8_t len){
+  setIdleState();
+  setPktLen(len);
+  flushTxBuff();
+  setTxState();
+  writeTxFifo(buff, len);
+  waitForState();
+  return true;
+};
+bool CC1101::link(uint8_t *txBuff, uint8_t *rxBuff, size_t timeoutMs) {
+  uint32_t timer = millis();
+  setIdleState();
+  flushTxBuff();
+  setTxState();
+  writeTxFifo(txBuff, pktLen);
+  waitForState();
+  flushRxBuff();
+  setRxState();
+  while (!enoughRxBytes(pktLen)) {
+    if (timer + timeoutMs < millis()) {
+      return false; // timeout
+    }
+    delay(1); // avoid watchdog
+  }
+  readRxFifo(rxBuff, pktLen);
+  waitForState();
+  return true;
+};
+void CC1101::link2(uint8_t *txBuff, uint8_t *rxBuff, size_t timeoutMs) {
+  uint32_t timer;
+  setIdleState();
+  setTwoWay();
+  setTxState();
+  while(true) {
+    flushTxBuff();
+    writeTxFifo(txBuff, pktLen);
+    waitForState(STATE_RX);
+    Serial.println("Sent packet.");
+    flushRxBuff();
+    timer = millis();
+    while (true) { /* state goes to tx even when fifo is empty */
+      Serial.print("state: ");
+      Serial.println(getState());
+      if (bus.readField(CC1101_REG_RXBYTES | CC1101_READ_BURST, 6, 0) != 0) {
+        Serial.println("rxbytes > 0");
+        readRxFifo(rxBuff, pktLen);
+        waitForState(STATE_TX);
+        Serial.println("Received packet.");
+        break;
+      // } else if (timer + timeoutMs < millis()) {
+      //   setIdleState();
+      //   setTxState();
+      //   Serial.println("timeout");
+      //   break;
+      // } else {
+        delay(500);
+      }
+    }
+  }
+};
 
 void CC1101::reset() {
   digitalWrite(ss, HIGH);
@@ -389,36 +387,11 @@ bool CC1101::waitForRxBytes(uint8_t len, size_t timeoutMs) {
   setIdleState();
   return true;
 };
-// bool CC1101::readRxFifo(uint8_t *buff, uint8_t len) {
-//   Serial.print("bytes in rxfifo: ");
-//   Serial.println(bus.readField(CC1101_REG_RXBYTES | CC1101_READ_BURST, 6, 0));
-//   if (!bus.readField(CC1101_REG_RXBYTES | CC1101_READ_BURST, 6, 0)) return false;
-//   if(isVariablePktLen) (void)bus.read(CC1101_REG_FIFO | CC1101_READ);
-//   if(addr) (void)bus.read(CC1101_REG_FIFO | CC1101_READ);
-//   bus.readBurst(CC1101_REG_FIFO | CC1101_READ_BURST, buff, len);
-//   if(isAppendStatus) {
-//     uint8_t r = bus.read(CC1101_REG_FIFO | CC1101_READ);
-//     // if(r >= 128) rssi = ((rssi - 256) / 2) - CC1101_RSSI_OFFSET;
-//     // else rssi = (rssi / 2) - CC1101_RSSI_OFFSET;
-//     rssi = ((r >= 128 ? (r - 256) : r) / 2) - CC1101_RSSI_OFFSET;  
-//     lqi = bus.read(CC1101_REG_FIFO | CC1101_READ) & 0x7f;
-//     if(!(r >> 7) & 1) return false; // CRC Mismatch
-//   }
-//   Serial.print("rxbytes still has: ");
-//   Serial.println(bus.readField(CC1101_REG_RXBYTES | CC1101_READ_BURST, 6, 0));
-//   return true;
-// };
-// void CC1101::writeTxFifo(uint8_t *buff, uint8_t len) {
-//   if(isVariablePktLen) bus.write(CC1101_REG_FIFO | CC1101_WRITE, len);
-//   if(addr) bus.write(CC1101_REG_FIFO | CC1101_WRITE, addr);
-//   bus.writeBurst(CC1101_REG_FIFO | CC1101_WRITE_BURST, buff, len);
-// };
-bool CC1101::readRxFifo(uint8_t *buff) {
+bool CC1101::readRxFifo(uint8_t *buff, uint8_t len) {
   Serial.print("bytes in rxfifo: ");
   Serial.println(bus.readField(CC1101_REG_RXBYTES | CC1101_READ_BURST, 6, 0));
   if (!bus.readField(CC1101_REG_RXBYTES | CC1101_READ_BURST, 6, 0)) return false;
-  uint8_t len = isVariablePktLen ? bus.read(CC1101_REG_FIFO | CC1101_READ) : pktLen;
-  // if(isVariablePktLen) (void)bus.read(CC1101_REG_FIFO | CC1101_READ);
+  if(isVariablePktLen) (void)bus.read(CC1101_REG_FIFO | CC1101_READ);
   if(addr) (void)bus.read(CC1101_REG_FIFO | CC1101_READ);
   bus.readBurst(CC1101_REG_FIFO | CC1101_READ_BURST, buff, len);
   if(isAppendStatus) {
@@ -433,8 +406,7 @@ bool CC1101::readRxFifo(uint8_t *buff) {
   Serial.println(bus.readField(CC1101_REG_RXBYTES | CC1101_READ_BURST, 6, 0));
   return true;
 };
-void CC1101::writeTxFifo(uint8_t *buff) {
-  uint8_t len = isVariablePktLen ? sizeof(buff) : pktLen;
+void CC1101::writeTxFifo(uint8_t *buff, uint8_t len) {
   if(isVariablePktLen) bus.write(CC1101_REG_FIFO | CC1101_WRITE, len);
   if(addr) bus.write(CC1101_REG_FIFO | CC1101_WRITE, addr);
   bus.writeBurst(CC1101_REG_FIFO | CC1101_WRITE_BURST, buff, len);

@@ -89,7 +89,7 @@ void txTask(void *pvParameters) {
   byte buff[4] = { 200, 201, 202, 203 };
 
   while (true) {
-    if (radio.write(buff, 4)) {
+    if (radio.write(buff)) {
       Serial.printf("Sending pkt: [%d, %d, %d, %d]", buff[0], buff[1], buff[2], buff[3]);
     } else {
       Serial.print("Error sending tx packet");
