@@ -31,9 +31,9 @@ bool CC1101::begin() {
 bool CC1101::read(uint8_t *buff) {
   if (getState() == STATE_RX) return false;
   bool isRead = readRxFifo(buff);
-  setIdleState();
+  setState();
   flushRxBuff();
-  setRxState();
+  setState(STATE_RX);
   return isRead;
 };
 // bool CC1101::read(uint8_t *buff){
@@ -102,9 +102,9 @@ bool CC1101::read(uint8_t *buff) {
 //   return true;
 // };
 bool CC1101::write(uint8_t *buff) {
-  setIdleState();
+  setState();
   flushTxBuff();
-  setTxState();
+  setState(STATE_TX);
   writeTxFifo(buff);
   waitForState();
   return true;
@@ -187,12 +187,12 @@ void CC1101::flushRxBuff() {
   //   Serial.print("flushed rxbuff has more bytes");
   // }; 
   // if(getState() != (STATE_IDLE || STATE_RXFIFO_OVERFLOW)) return;
-  if (getState() != (STATE_IDLE || STATE_RXFIFO_OVERFLOW)) setIdleState();
+  if (getState() != (STATE_IDLE || STATE_RXFIFO_OVERFLOW)) setState();
   bus.strobe(CC1101_REG_FRX | CC1101_WRITE_BURST);
 };
 void CC1101::flushTxBuff() {
   // if(getState() != (STATE_IDLE || STATE_TXFIFO_UNDERFLOW)) return;
-  if(getState() != (STATE_IDLE || STATE_TXFIFO_UNDERFLOW)) setIdleState();
+  if(getState() != (STATE_IDLE || STATE_TXFIFO_UNDERFLOW)) setState();
   bus.strobe(CC1101_REG_FTX);
 };
 byte CC1101::readStatus(byte addr) {
@@ -335,25 +335,47 @@ void CC1101::setPwr(CC1101_FreqBand freqBand, CC1101_PowerMW pwr, const uint8_t 
   }
   bus.write(CC1101_REG_PATABLE | CC1101_WRITE, pwrTable[freqBand][pwr]);
 };
-void CC1101::setIdleState() {
-  if (getState() == STATE_IDLE) return;
-  bus.strobe(CC1101_REG_IDLE);
-  while (getState() != STATE_IDLE);
+void CC1101::setState(State state) {
+  byte currentState = getState();
+  if (currentState == state) return;
+  switch (state) {
+    case STATE_IDLE: 
+      bus.strobe(CC1101_REG_IDLE);
+      break;
+    case STATE_RX: 
+      if (currentState == STATE_RXFIFO_OVERFLOW) bus.strobe(CC1101_REG_FRX);
+      waitForState();
+      if (currentState == (STATE_CALIB || STATE_SETTLING)) setState(); 
+      bus.strobe(CC1101_REG_RX);
+      break;
+    case STATE_TX: 
+      if (currentState == STATE_TXFIFO_UNDERFLOW) bus.strobe(CC1101_REG_FTX);
+      waitForState();
+      if (currentState == (STATE_CALIB || STATE_SETTLING)) setState(); 
+      bus.strobe(CC1101_REG_TX);
+      break;
+  }
+  while (getState() != state);
 };
-void CC1101::setRxState() {
-    byte state = getState();
-    if (state == STATE_RX) return; 
-    else if (state == STATE_RXFIFO_OVERFLOW) bus.strobe(CC1101_REG_FRX);
-    else if (state != (STATE_CALIB || STATE_SETTLING)) bus.strobe(CC1101_REG_RX);
-    while (getState() != STATE_RX);
-};
-void CC1101::setTxState() {
-    byte state = getState();
-    if (state == STATE_TX) return;
-    else if (state == STATE_TXFIFO_UNDERFLOW) bus.strobe(CC1101_REG_FTX);
-    else if (state != (STATE_CALIB || STATE_SETTLING)) bus.strobe(CC1101_REG_TX);
-    while (getState() != STATE_TX);
-};
+// void CC1101::setIdleState() {
+//   if (getState() == STATE_IDLE) return;
+//   bus.strobe(CC1101_REG_IDLE);
+//   while (getState() != STATE_IDLE);
+// };
+// void CC1101::setRxState() {
+//     byte state = getState();
+//     if (state == STATE_RX) return; 
+//     else if (state == STATE_RXFIFO_OVERFLOW) bus.strobe(CC1101_REG_FRX);
+//     else if (state != (STATE_CALIB || STATE_SETTLING)) bus.strobe(CC1101_REG_RX);
+//     while (getState() != STATE_RX);
+// };
+// void CC1101::setTxState() {
+//     byte state = getState();
+//     if (state == STATE_TX) return;
+//     else if (state == STATE_TXFIFO_UNDERFLOW) bus.strobe(CC1101_REG_FTX);
+//     else if (state != (STATE_CALIB || STATE_SETTLING)) bus.strobe(CC1101_REG_TX);
+//     while (getState() != STATE_TX);
+// };
 void CC1101::setTwoWay() {
     bus.writeField(CC1101_REG_MCSM1, CC1101_READ, CC1101_WRITE, 5, 4, 0); // Disabl CCA
     bus.writeField(CC1101_REG_MCSM1, CC1101_READ, CC1101_WRITE, 1, 0, 3); // Set TXOFF to RX
@@ -382,11 +404,11 @@ bool CC1101::waitForRxBytes(uint8_t len, size_t timeoutMs) {
   uint32_t timer = millis();
   while(!enoughRxBytes(len)) {
     if((timer + timeoutMs) < millis()) {
-      setIdleState(); // timeout
+      setState(); // timeout
       return false;
     }
   }
-  setIdleState();
+  setState();
   return true;
 };
 // bool CC1101::readRxFifo(uint8_t *buff, uint8_t len) {
@@ -438,4 +460,24 @@ void CC1101::writeTxFifo(uint8_t *buff) {
   if(isVariablePktLen) bus.write(CC1101_REG_FIFO | CC1101_WRITE, len);
   if(addr) bus.write(CC1101_REG_FIFO | CC1101_WRITE, addr);
   bus.writeBurst(CC1101_REG_FIFO | CC1101_WRITE_BURST, buff, len);
+};
+
+uint8_t CC1101::strobe(byte addr) {
+  return bus.strobe(addr | CC1101_WRITE_BURST);
+};
+uint8_t CC1101::readReg(byte addr) {
+  return bus.read(addr | CC1101_READ);
+};
+void CC1101::writeReg(byte addr, uint8_t val) {
+  bus.write(addr | CC1101_WRITE, val);
+};
+uint8_t CC1101::readRegField(byte addr, byte lo, byte hi) {
+  return bus.readField(addr | CC1101_READ_BURST, lo, hi);
+};
+void CC1101::writeRegField(byte addr, byte lo, byte hi, uint8_t val) {};
+void CC1101::readRegBurst(byte addr, byte *buff, uint8_t len) {
+  bus.readBurst(addr | CC1101_READ_BURST, buff, len);
+};
+void CC1101::writeRegBurst(byte addr, byte *buff, uint8_t len) {
+  bus.writeBurst(addr | CC1101_WRITE_BURST, buff, len);
 };

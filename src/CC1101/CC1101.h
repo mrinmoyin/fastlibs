@@ -226,9 +226,10 @@ class CC1101 {
     void setFreq(float freq);
     void setDrate(float drate);
     void setPwr(CC1101_FreqBand freqBand, CC1101_PowerMW pwr, const uint8_t pwrTable[][8]);
-    void setIdleState();
-    void setRxState();
-    void setTxState();
+    void setState(State state = STATE_IDLE);
+    // void setIdleState();
+    // void setRxState();
+    // void setTxState();
     void setTwoWay();
 
     bool enoughRxBytes(uint8_t len);
@@ -238,6 +239,14 @@ class CC1101 {
     void writeTxFifo(uint8_t *buff);
     // bool readRxFifo(uint8_t *buff, uint8_t len);
     // void writeTxFifo(uint8_t *buff, uint8_t len);
+
+    uint8_t strobe(byte addr);
+    uint8_t readReg(byte addr);
+    void writeReg(byte addr, uint8_t val);
+    uint8_t readRegField(byte addr, byte lo, byte hi);
+    void writeRegField(byte addr, byte lo, byte hi, uint8_t val);
+    void readRegBurst(byte addr, byte *buff, uint8_t len);
+    void writeRegBurst(byte addr, byte *buff, uint8_t len);
 };
 
 #endif
