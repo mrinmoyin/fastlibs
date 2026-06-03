@@ -56,7 +56,7 @@ void setup() {
 }
 
 void loop() {
-  if (!radio.write(txBuff, 4)) {
+  if (!radio.write(txBuff)) {
     Serial.println("Error sending packet");
   } else {
     Serial.printf("Sending pkt: [%d, %d, %d, %d]", txBuff[0], txBuff[1], txBuff[2], txBuff[3]);
