@@ -146,10 +146,7 @@ void rxTask(void *pvParameters) {
 
   while (true) {
     if (radio.read(buff)) {
-      Serial.printf("Received: [%d, %d, %d, %d], Rssi: %d, Lqi: %d", buff[0], buff[1], buff[2], buff[3], radio.rssi, radio.lqi);
-    // } else {
-    //   Serial.print("Error receiving rx pkt");
-      Serial.println();
+      Serial.printf("Received: [%d, %d, %d, %d], Rssi: %d, Lqi: %d\n", buff[0], buff[1], buff[2], buff[3], radio.rssi, radio.lqi);
     }
   }
 }
