@@ -191,21 +191,21 @@ void CC1101::reset() {
   delayMicroseconds(40);
 
   // strobe(CC1101_REG_RES);
-  bus.strobe(CC1101_REG_RES | CC1101_WRITE_BURST);
+  strobe(CC1101_REG_RES | CC1101_WRITE_BURST);
 };
 void CC1101::flushRxBuff() {
   if (getState() != (STATE_IDLE || STATE_RXFIFO_OVERFLOW)) return;
   // if (getState() != (STATE_IDLE || STATE_RXFIFO_OVERFLOW)) setState();
   // if (getState() != (STATE_IDLE || STATE_RXFIFO_OVERFLOW)) waitForState();
   // strobe(CC1101_REG_FRX);
-  bus.strobe(CC1101_REG_FRX | CC1101_WRITE_BURST);
+  strobe(CC1101_REG_FRX | CC1101_WRITE_BURST);
 };
 void CC1101::flushTxBuff() {
   if (getState() != (STATE_IDLE || STATE_TXFIFO_UNDERFLOW)) return;
   // if(getState() != (STATE_IDLE || STATE_TXFIFO_UNDERFLOW)) setState();
   // if(getState() != (STATE_IDLE || STATE_TXFIFO_UNDERFLOW)) waitForState();
   // strobe(CC1101_REG_FTX);
-  bus.strobe(CC1101_REG_FTX);
+  strobe(CC1101_REG_FTX | CC1101_WRITE_BURST);
 };
 void CC1101::waitForState(State state) {
   while (getState() != state) {
@@ -218,7 +218,7 @@ void CC1101::waitForState(State state) {
 
 byte CC1101::getState() {
   // return (strobe(CC1101_REG_NOP) >> 4) & 0b00111;
-  return (bus.strobe(CC1101_REG_NOP) >> 4) & 0b00111;
+  return (strobe(CC1101_REG_NOP) >> 4) & 0b00111;
 };
 bool CC1101::getChipInfo() {
   partnum = readStatus(CC1101_REG_PARTNUM);
@@ -331,8 +331,8 @@ void CC1101::setDrate(float drate){
   }
 
   writeRegField(CC1101_REG_MDMCFG4, 3, 0, e);
-  writeRegField(CC1101_REG_MDMCFG3, 7, 0, (byte)m);
-  // write(CC1101_REG_MDMCFG3 | CC1101_WRITE, (byte)m);
+  writeRegField(CC1101_REG_MDMCFG3, 7, 0, (uint8_t)m);
+  // write(CC1101_REG_MDMCFG3 | CC1101_WRITE, (uint8_t)m);
 };
 void CC1101::setPwr(CC1101_FreqBand freqBand, CC1101_PowerMW pwr, const uint8_t pwrTable[][8]){
   // if(mod == CC1101_MOD_ASK_OOK) {
@@ -343,11 +343,7 @@ void CC1101::setPwr(CC1101_FreqBand freqBand, CC1101_PowerMW pwr, const uint8_t 
   //   write(CC1101_REG_PATABLE | CC1101_WRITE, pwrTable[freqBand][pwr]);
   //   writeRegField(CC1101_REG_FREND0, CC1101_READ, CC1101_WRITE, 2, 0, 0);
   // }
-  if(mod == CC1101_MOD_ASK_OOK) {
-    writeRegField(CC1101_REG_FREND0, 2, 0, 1);
-  } else {
-    writeRegField(CC1101_REG_FREND0, 2, 0, 0);
-  }
+  writeRegField(CC1101_REG_FREND0, 2, 0, mod == CC1101_MOD_ASK_OOK ? 1 : 0);
   writeReg(CC1101_REG_PATABLE, pwrTable[freqBand][pwr]);
 };
 void CC1101::setState(State state) {
@@ -355,26 +351,19 @@ void CC1101::setState(State state) {
   if (currentState == state) return;
   switch (state) {
     case STATE_IDLE: 
-      Serial.println("setting state idle");
-      bus.strobe(CC1101_REG_IDLE);
+      strobe(CC1101_REG_IDLE);
       break;
     case STATE_RX: 
-      Serial.print("setting state rx");
-      Serial.print(", is settable ");
-      Serial.println(currentState != (STATE_CALIB || STATE_SETTLING));
-      if (currentState == STATE_RXFIFO_OVERFLOW) bus.strobe(CC1101_REG_FRX);
-      // if (currentState == (STATE_CALIB || STATE_SETTLING)) setState(); 
-      // strobe(CC1101_REG_RX);
-      if (currentState != (STATE_CALIB || STATE_SETTLING)) bus.strobe(CC1101_REG_RX);
+      if (currentState == STATE_RXFIFO_OVERFLOW) strobe(CC1101_REG_FRX);
+      if (currentState == (STATE_CALIB || STATE_SETTLING)) setState(); 
+      strobe(CC1101_REG_RX);
+      // if (currentState != (STATE_CALIB || STATE_SETTLING)) strobe(CC1101_REG_RX);
       break;
     case STATE_TX: 
-      Serial.print("setting state tx");
-      Serial.print(", is settable ");
-      Serial.println(currentState != (STATE_CALIB || STATE_SETTLING));
-      if (currentState == STATE_TXFIFO_UNDERFLOW) bus.strobe(CC1101_REG_FTX);
-      // if (currentState == (STATE_CALIB || STATE_SETTLING)) setState(); 
-      // strobe(CC1101_REG_TX);
-      if (currentState != (STATE_CALIB || STATE_SETTLING)) bus.strobe(CC1101_REG_TX);
+      if (currentState == STATE_TXFIFO_UNDERFLOW) strobe(CC1101_REG_FTX);
+      if (currentState == (STATE_CALIB || STATE_SETTLING)) setState(); 
+      strobe(CC1101_REG_TX);
+      // if (currentState != (STATE_CALIB || STATE_SETTLING)) strobe(CC1101_REG_TX);
       break;
   }
   waitForState(state);
@@ -505,7 +494,7 @@ void CC1101::writeReg(byte addr, uint8_t val) {
   bus.write(addr | CC1101_WRITE, val);
 };
 void CC1101::writeRegField(byte addr, byte lo, byte hi, uint8_t val) {
-    bus.writeField(addr, CC1101_READ, CC1101_WRITE, hi, lo, val);
+  bus.writeField(addr, CC1101_READ, CC1101_WRITE, hi, lo, val);
 };
 void CC1101::writeRegBurst(byte addr, uint8_t *buff, size_t len) {
   bus.writeBurst(addr | CC1101_WRITE_BURST, buff, len);
