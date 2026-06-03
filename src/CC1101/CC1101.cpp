@@ -24,6 +24,14 @@ bool CC1101::begin() {
   setSync(syncMode, syncWord, preambleLen);
   setPktLenMode(isVariablePktLen);
   setPktLen(pktLen);
+  
+  delayMicroseconds(500);
+  Serial.print("\nCRC: ");
+  Serial.println(bus.readField(CC1101_REG_PKTCTRL0 | CC1101_READ_BURST, 2, 2));
+  Serial.print("Autoflush: ");
+  Serial.println(bus.readField(CC1101_REG_PKTCTRL1 | CC1101_READ_BURST, 3, 3));
+  Serial.print("FEC: ");
+  Serial.println(bus.readField(CC1101_REG_MDMCFG1 | CC1101_READ_BURST, 7, 7));
 
   return true;
 }
@@ -220,22 +228,22 @@ void CC1101::reset() {
   digitalWrite(ss, HIGH);
   delayMicroseconds(40);
 
-  // bus.strobe(CC1101_REG_RES);
-  bus.strobe(CC1101_REG_RES | CC1101_WRITE_BURST);
+  bus.strobe(CC1101_REG_RES);
+  // bus.strobe(CC1101_REG_RES | CC1101_WRITE_BURST);
 };
 void CC1101::flushRxBuff() {
   if (getState() != (STATE_IDLE || STATE_RXFIFO_OVERFLOW)) return;
   // if (getState() != (STATE_IDLE || STATE_RXFIFO_OVERFLOW)) setState();
   // if (getState() != (STATE_IDLE || STATE_RXFIFO_OVERFLOW)) waitForState();
-  // bus.strobe(CC1101_REG_FRX);
-  bus.strobe(CC1101_REG_FRX | CC1101_WRITE_BURST);
+  bus.strobe(CC1101_REG_FRX);
+  // bus.strobe(CC1101_REG_FRX | CC1101_WRITE_BURST);
 };
 void CC1101::flushTxBuff() {
   if (getState() != (STATE_IDLE || STATE_TXFIFO_UNDERFLOW)) return;
   // if(getState() != (STATE_IDLE || STATE_TXFIFO_UNDERFLOW)) setState();
   // if(getState() != (STATE_IDLE || STATE_TXFIFO_UNDERFLOW)) waitForState();
-  // bus.strobe(CC1101_REG_FTX);
-  bus.strobe(CC1101_REG_FTX | CC1101_WRITE_BURST);
+  bus.strobe(CC1101_REG_FTX);
+  // bus.strobe(CC1101_REG_FTX | CC1101_WRITE_BURST);
 };
 void CC1101::waitForState(State state) {
   while (getState() != state) { 
@@ -332,12 +340,13 @@ void CC1101::setPktLen(uint8_t len) {
   writeReg(CC1101_REG_PKTLEN, len);
 };
 void CC1101::setPktLenMode(bool isVariablePktLen) {
-  writeRegField(CC1101_REG_PKTCTRL0, 1, 0, (uint8_t)isVariablePktLen); /* TODO: infinite */
+  // writeRegField(CC1101_REG_PKTCTRL0, 1, 0, (uint8_t)isVariablePktLen); /* TODO: infinite */
+  bus.writeField(CC1101_REG_PKTCTRL0, CC1101_READ, CC1101_WRITE, 1, 0, (uint8_t)isVariablePktLen); /* TODO: infinite */
 };
-void CC1101::setMod(CC1101_Modulation mod){
+void CC1101::setMod(CC1101_Modulation mod) {
   writeRegField(CC1101_REG_MDMCFG2, 6, 4, (uint8_t)mod);
 };
-void CC1101::setFreq(float freq){
+void CC1101::setFreq(float freq) {
   uint32_t f = ((freq * 65536.0) / CC1101_CRYSTAL_FREQ); 
 
   writeReg(CC1101_REG_FREQ0, f & 0xff);
@@ -348,7 +357,21 @@ void CC1101::setFreq(float freq){
   // writeRegField(CC1101_REG_DEVIATN, CC1101_READ, CC1101_WRITE, 6, 4, devE);
   // writeRegField(CC1101_REG_DEVIATN, CC1101_READ, CC1101_WRITE, 2, 0, devM);
 };
-void CC1101::setDrate(float drate){
+// void CC1101::setDrate(float drate){
+//   uint32_t xosc = CC1101_CRYSTAL_FREQ * 1000;
+//   uint8_t e = log2((drate * (double)((uint32_t)1 << 20)) / xosc);
+//   uint32_t m = round(drate * ((double)((uint32_t)1 << (28 - e)) / xosc) - 256.0);
+//
+//   if (m == 256) {
+//     m = 0;
+//     e++;
+//   }
+//
+//   writeRegField(CC1101_REG_MDMCFG4, 3, 0, e);
+//   writeRegField(CC1101_REG_MDMCFG3, 7, 0, (uint8_t)m);
+//   // writeReg(CC1101_REG_MDMCFG3, (uint8_t)m);
+// };
+void CC1101::setDrate(float drate) {
   uint32_t xosc = CC1101_CRYSTAL_FREQ * 1000;
   uint8_t e = log2((drate * (double)((uint32_t)1 << 20)) / xosc);
   uint32_t m = round(drate * ((double)((uint32_t)1 << (28 - e)) / xosc) - 256.0);
@@ -358,9 +381,12 @@ void CC1101::setDrate(float drate){
     e++;
   }
 
-  writeRegField(CC1101_REG_MDMCFG4, 3, 0, e);
-  writeRegField(CC1101_REG_MDMCFG3, 7, 0, (uint8_t)m);
-  // write(CC1101_REG_MDMCFG3 | CC1101_WRITE, (uint8_t)m);
+  bus.writeField(CC1101_REG_MDMCFG4, CC1101_READ, CC1101_WRITE, 3, 0, e);
+  bus.writeField(CC1101_REG_MDMCFG3, CC1101_READ, CC1101_WRITE, 7, 0, (uint8_t)m);
+  // bus.write(CC1101_REG_MDMCFG3 | CC1101_WRITE, (byte)m);
+  // writeRegField(CC1101_REG_MDMCFG4, 3, 0, e);
+  // // writeRegField(CC1101_REG_MDMCFG3, 7, 0, (uint8_t)m);
+  // writeReg(CC1101_REG_MDMCFG3, (uint8_t)m);
 };
 void CC1101::setPwr(CC1101_FreqBand freqBand, CC1101_PowerMW pwr, const uint8_t pwrTable[][8]){
   // if(mod == CC1101_MOD_ASK_OOK) {
@@ -374,6 +400,7 @@ void CC1101::setPwr(CC1101_FreqBand freqBand, CC1101_PowerMW pwr, const uint8_t 
   writeRegField(CC1101_REG_FREND0, 2, 0, mod == CC1101_MOD_ASK_OOK ? 1 : 0);
   writeReg(CC1101_REG_PATABLE, pwrTable[freqBand][pwr]);
 };
+
 void CC1101::setState(State state) {
   Serial.printf("setState: %d", state);
   Serial.println();
@@ -439,7 +466,7 @@ void CC1101::setState(State state) {
 void CC1101::setTwoWay() {
     writeRegField(CC1101_REG_MCSM1, 5, 4, 0); // Disabl CCA
     writeRegField(CC1101_REG_MCSM1, 1, 0, 3); // Set TXOFF to RX
-    writeRegField(CC1101_REG_MCSM1, 3, 2, 2); // Set RXOFF to TX
+    writeRegField(CC1101_REG_MCSM1, 3, 2, 0); // Set RXOFF to IDLE
 };
 
 bool CC1101::enoughRxBytes(uint8_t len) {
@@ -542,7 +569,9 @@ void CC1101::writeReg(byte addr, uint8_t val) {
   bus.write(addr | CC1101_WRITE, val);
 };
 void CC1101::writeRegField(byte addr, byte lo, byte hi, uint8_t val) {
-  bus.writeField(addr, CC1101_READ, CC1101_WRITE, hi, lo, val);
+  // bus.writeField(addr, CC1101_READ, CC1101_WRITE, hi, lo, val);
+  uint8_t mask = ((1 << (hi - lo + 1)) -1) << lo;
+  bus.write(addr | CC1101_WRITE, (bus.read(addr | CC1101_READ) & ~mask) | ((val <<= lo) & mask));
 };
 void CC1101::writeRegBurst(byte addr, uint8_t *buff, size_t len) {
   bus.writeBurst(addr | CC1101_WRITE_BURST, buff, len);
