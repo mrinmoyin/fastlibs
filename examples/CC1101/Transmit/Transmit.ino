@@ -12,7 +12,7 @@
 
 CC1101 radio(CC1101_MOD_2FSK,         // mod
              433.8,                   // freq
-             4.0,                     // drate
+             30,                      // drate
              CC1101_POWER_3MW,        // pwr
              0,                       // addr
              4,                       // pktlen
@@ -21,10 +21,10 @@ CC1101 radio(CC1101_MOD_2FSK,         // mod
              64,                      // preamble length
              false,                   // crc
              false,                   // fec
-             true,                    // auto calib
+             false,                    // auto calib
              false,                   // manchester
-             true,                    // append status
-             true,                    // data whitening
+             false,                    // append status
+             false,                    // data whitening
              false,                   // variable packet length
              SS,                      // ss/cs pin
              MISO);                   // miso pin

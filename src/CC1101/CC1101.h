@@ -222,7 +222,7 @@ class CC1101 {
     void setAppendStatus(bool en);
     void setDataWhitening(bool en);
     void setPktLen(uint8_t len);
-    void setPktLenMode(bool isVariablePktLen);
+    void setPktLenMode(bool isVariable);
     void setMod(CC1101_Modulation mod);
     void setFreq(float freq);
     void setDrate(float drate);
