@@ -14,6 +14,7 @@
 
 #define CC1101_READ               0x80
 #define CC1101_WRITE              0x00
+#define CC1101_BURST              0x40
 #define CC1101_READ_BURST         0xC0
 #define CC1101_WRITE_BURST        0x40
 
@@ -211,6 +212,7 @@ class CC1101 {
     bool getFreqBand(float freq, const float freqTable[][2]);
     uint8_t getPreambleIdx(uint8_t len);
 
+    void setCCA(bool en);
     void setCRC(bool en);
     void setFEC(bool en);
     void setAddr(byte addr);
@@ -229,7 +231,7 @@ class CC1101 {
     // void setIdleState();
     // void setRxState();
     // void setTxState();
-    void setTwoWay();
+    // void setTwoWay();
 
     bool enoughRxBytes(uint8_t len);
     void waitForRxBytes(uint8_t len);
