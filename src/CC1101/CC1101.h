@@ -84,6 +84,12 @@ enum CC1101_SyncMode {
   CC1101_SYNC_MODE_30_32_CS       = 7,  /* 30/32 + carrier-sense above threshold */
 };
 
+enum CC1101_PktLenMode {
+  CC1101_PKTLEN_FIXED     = 0,
+  CC1101_PKTLEN_VARIABLE  = 1,
+  // CC1101_PKTLEN_INFINITE  = 2,
+};
+
 class CC1101 {
   public:
     CC1101(
@@ -92,7 +98,8 @@ class CC1101 {
         float drate = 4.0,
         CC1101_PowerMW pwr = CC1101_POWER_1MW,
         uint8_t addr = 0,
-        uint8_t pktLen = 4,
+        CC1101_PktLenMode pktLenMode = CC1101_PKTLEN_VARIABLE,
+        uint8_t pktLen = 64,
         CC1101_SyncMode syncMode = CC1101_SYNC_MODE_16_16,
         uint16_t syncWord = 0x1234,
         uint8_t preambleLen = 64,
@@ -102,7 +109,6 @@ class CC1101 {
         bool isManchester = false,
         bool isAppendStatus = true,
         bool isDataWhitening = false,
-        bool isVariablePktLen = false,
         uint8_t ss = SS,
         uint8_t miso = MISO,
         SPIClass &spi = SPI
@@ -113,6 +119,7 @@ class CC1101 {
       pwr(pwr),
       addr(addr),
       pktLen(pktLen),
+      pktLenMode(pktLenMode),
       syncMode(syncMode),
       syncWord(syncWord),
       preambleLen(preambleLen),
@@ -122,7 +129,6 @@ class CC1101 {
       isManchester(isManchester),
       isAppendStatus(isAppendStatus),
       isDataWhitening(isDataWhitening),
-      isVariablePktLen(isVariablePktLen),
       ss(ss),
       bus(ss, miso, spi) {};
 
@@ -132,10 +138,10 @@ class CC1101 {
   bool begin();
 
   bool read(uint8_t *buff);
+  bool write(uint8_t *buff);
   // bool read(uint8_t *buff, uint8_t len);
   // bool readUntil(uint8_t *buff, size_t timeoutMs);
   // bool readUntil(uint8_t *buff, uint8_t len, size_t timeoutMs);
-  bool write(uint8_t *buff);
   // bool write(uint8_t *buff, uint8_t len);
   // bool link(uint8_t *txBuff, uint8_t *rxBuff, size_t timeoutMs = 500);
   // void link2(uint8_t *txBuff, uint8_t *rxBuff, size_t timeoutMs = 500);
@@ -174,7 +180,7 @@ class CC1101 {
       [6]                  = {  0.0, 0.0   },
       [CC1101_MOD_MSK]     = { 26.0, 500.0 }
     };
-    inline static const byte powerTable[][8] = {
+    inline static const byte pwrTable[][8] = {
       [CC1101_FREQ_BAND_315] = { 0x12, 0x0d, 0x1c, 0x34, 0x51, 0x85, 0xcb, 0xc2 },
       [CC1101_FREQ_BAND_433] = { 0x12, 0x0e, 0x1d, 0x34, 0x60, 0x84, 0xc8, 0xc0 },
       [CC1101_FREQ_BAND_868] = { 0x03, 0x0f, 0x1e, 0x27, 0x50, 0x81, 0xcb, 0xc2 },
@@ -188,6 +194,7 @@ class CC1101 {
     CC1101_SyncMode syncMode;
     CC1101_PowerMW pwr;
     CC1101_FreqBand freqBand;
+    CC1101_PktLenMode pktLenMode;
     float freq, drate;
     uint8_t pktLen, preambleLen;
     uint16_t syncWord;
@@ -197,9 +204,9 @@ class CC1101 {
          isAutoCalib,
          isManchester,
          isAppendStatus,
-         isDataWhitening,
-         isVariablePktLen;
+         isDataWhitening;
     int8_t preambleIdx = -1;
+    bool isVariablePktLen = pktLenMode == CC1101_PKTLEN_VARIABLE;
 
     void reset();
     void flushRxBuff();
@@ -221,7 +228,7 @@ class CC1101 {
     void setAppendStatus(bool en);
     void setDataWhitening(bool en);
     void setPktLen(uint8_t len);
-    void setPktLenMode(bool isVariable);
+    void setPktLenMode(CC1101_PktLenMode mode);
     void setMod(CC1101_Modulation mod);
     void setFreq(float freq);
     void setDrate(float drate);

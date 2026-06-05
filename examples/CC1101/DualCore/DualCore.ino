@@ -51,20 +51,20 @@ void txTask(void *pvParameters) {
   SPIClass fspi(FSPI);
   CC1101 radio(CC1101_MOD_2FSK,         // mod
                433.8,                   // freq
-               10,                      // drate
+               30,                      // drate
                CC1101_POWER_3MW,        // pwr
                0,                       // addr
-               4,                      // pktlen
+               CC1101_PKTLEN_FIXED,     // packet length mode
+               4,                       // pktlen
                CC1101_SYNC_MODE_16_16,  // sync mode
                0x1234,                  // sync word
                64,                      // preamble length
-               true,                    // crc
+               false,                    // crc
                false,                   // fec
-               true,                    // auto calib
-               true,                   // manchester
-               true,                    // append status
+               false,                    // auto calib
+               false,                   // manchester
+               false,                    // append status
                false,                   // data whitening
-               false,                   // variable packet length
                TX_SS,                   // ss/cs pin
                FSPI_MISO,               // miso pin
                fspi);                   // spi class
@@ -107,20 +107,20 @@ void rxTask(void *pvParameters) {
   SPIClass hspi(HSPI);
   CC1101 radio(CC1101_MOD_2FSK,         // mod
                433.8,                   // freq
-               10,                      // drate
+               30,                      // drate
                CC1101_POWER_3MW,        // pwr
                0,                       // addr
-               4,                      // pktlen
+               CC1101_PKTLEN_FIXED,     // packet length mode
+               4,                       // pktlen
                CC1101_SYNC_MODE_16_16,  // sync mode
                0x1234,                  // sync word
                64,                      // preamble length
-               true,                    // crc
+               false,                    // crc
                false,                   // fec
-               true,                    // auto calib
-               true,                   // manchester
-               true,                    // append status
+               false,                    // auto calib
+               false,                   // manchester
+               false,                    // append status
                false,                   // data whitening
-               false,                   // variable packet length
                RX_SS,                   // ss/cs pin
                HSPI_MISO,               // miso pin
                hspi);                   // spi class

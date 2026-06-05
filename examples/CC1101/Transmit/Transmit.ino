@@ -15,17 +15,17 @@ CC1101 radio(CC1101_MOD_2FSK,         // mod
              30,                      // drate
              CC1101_POWER_3MW,        // pwr
              0,                       // addr
+             CC1101_PKTLEN_FIXED,     // packet length mode
              4,                       // pktlen
              CC1101_SYNC_MODE_16_16,  // sync mode
              0x1234,                  // sync word
              64,                      // preamble length
              false,                   // crc
              false,                   // fec
-             false,                    // auto calib
+             false,                   // auto calib
              false,                   // manchester
-             false,                    // append status
-             false,                    // data whitening
-             false,                   // variable packet length
+             false,                   // append status
+             false,                   // data whitening
              SS,                      // ss/cs pin
              MISO);                   // miso pin
 
