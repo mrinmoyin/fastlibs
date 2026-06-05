@@ -14,7 +14,6 @@
 
 #define CC1101_READ               0x80
 #define CC1101_WRITE              0x00
-#define CC1101_BURST              0x40
 #define CC1101_READ_BURST         0xC0
 #define CC1101_WRITE_BURST        0x40
 
@@ -243,7 +242,7 @@ class CC1101 {
 
     uint8_t strobe(byte addr);
     uint8_t readReg(byte addr);
-    uint8_t readStatus(byte addr);
+    uint8_t readStatusReg(byte addr);
     uint8_t readRegField(byte addr, byte lo, byte hi);
     void readRegBurst(byte addr, uint8_t *buff, size_t len);
     void writeReg(byte addr, uint8_t val);

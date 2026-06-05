@@ -23,13 +23,8 @@ bool CC1101::begin() {
   setAppendStatus(isAppendStatus);
   setDataWhitening(isDataWhitening);
   setSync(syncMode, syncWord, preambleLen);
-  setPktLenMode(isVariablePktLen);
   setPktLen(pktLen);
-  
-  delayMicroseconds(500);
-  Serial.println();
-  Serial.print("PktLenMode: ");
-  Serial.println(readRegField(CC1101_REG_PKTCTRL0, 1, 0));
+  setPktLenMode(isVariablePktLen); 
 
   return true;
 }
@@ -47,7 +42,7 @@ bool CC1101::read(uint8_t *buff) {
   return isRead;
 };
 bool CC1101::write(uint8_t *buff) {
-  uint8_t txBytes = readStatus(CC1101_REG_TXBYTES);
+  uint8_t txBytes = readStatusReg(CC1101_REG_TXBYTES);
   if (txBytes != 0 || getState() != STATE_RX) {
     if (txBytes != 0) {
       Serial.printf("tx bytes is not empty, %d", txBytes);
@@ -66,7 +61,7 @@ bool CC1101::write(uint8_t *buff) {
   setState(STATE_RX);
   return true;
  
-  // if (readStatus(CC1101_REG_TXBYTES) != 0) {
+  // if (readStatusReg(CC1101_REG_TXBYTES) != 0) {
   //   setState();
   //   flushTxBuff();
   //   waitForState();
@@ -238,7 +233,7 @@ void CC1101::waitForState(State state) {
   while (getState() != state) { 
     Serial.printf("waiting for state: %d, current state is : %d", state, getState());
     Serial.println();
-  Serial.printf("bytes in txfifo: %d, rxfifo: %d", readStatus(CC1101_REG_TXBYTES), readStatus(CC1101_REG_RXBYTES));
+  Serial.printf("bytes in txfifo: %d, rxfifo: %d", readStatusReg(CC1101_REG_TXBYTES), readStatusReg(CC1101_REG_RXBYTES));
     Serial.println();
   };
 };
@@ -248,8 +243,8 @@ byte CC1101::getState() {
   return (strobe(CC1101_REG_NOP) >> 4) & 0b00111;
 };
 bool CC1101::getChipInfo() {
-  partnum = readStatus(CC1101_REG_PARTNUM);
-  version = readStatus(CC1101_REG_VERSION);
+  partnum = readStatusReg(CC1101_REG_PARTNUM);
+  version = readStatusReg(CC1101_REG_VERSION);
 
   if(partnum == CC1101_PARTNUM && version == CC1101_VERSION) return true;
   return false;
@@ -338,8 +333,8 @@ void CC1101::setPktLen(uint8_t len) {
   writeReg(CC1101_REG_PKTLEN, len);
 };
 void CC1101::setPktLenMode(bool isVariable) { // TODO: infinite 
-  // writeRegField(CC1101_REG_PKTCTRL0, 1, 0, (uint8_t)isVariable);
-  bus.writeField(CC1101_REG_PKTCTRL0, CC1101_READ, CC1101_WRITE, 1, 0, (uint8_t)isVariable);
+  writeRegField(CC1101_REG_PKTCTRL0, 1, 0, (uint8_t)isVariable);
+  // bus.writeField(CC1101_REG_PKTCTRL0, CC1101_READ, CC1101_WRITE, 1, 0, (uint8_t)isVariable);
 };
 void CC1101::setMod(CC1101_Modulation mod) {
   writeRegField(CC1101_REG_MDMCFG2, 6, 4, (uint8_t)mod);
@@ -527,30 +522,34 @@ void CC1101::writeTxFifo(uint8_t *buff) {
   uint8_t len = isVariablePktLen ? sizeof(buff) : pktLen;
   if (isVariablePktLen) writeReg(CC1101_REG_FIFO, len);
   if (addr) writeReg(CC1101_REG_FIFO, addr);
+  writeReg(CC1101_REG_FIFO, len);
   writeRegBurst(CC1101_REG_FIFO, buff, len);
-  Serial.printf("written to txfifo: %d", readStatus(CC1101_REG_TXBYTES));
+  Serial.printf("written to txfifo: %d", readStatusReg(CC1101_REG_TXBYTES));
   Serial.println();
+  Serial.print("PktLenMode: ");
+  Serial.println(readRegField(CC1101_REG_PKTCTRL0, 1, 0));
+  Serial.print("PktLen: ");
+  Serial.println(readReg(CC1101_REG_PKTLEN));
+  Serial.print("AddrMode: ");
+  Serial.println(readRegField(CC1101_REG_PKTCTRL1, 1, 0));
+  Serial.print("Addr: ");
+  Serial.println(readReg(CC1101_REG_ADDR));
 };
 
 uint8_t CC1101::strobe(byte addr) {
-  // Serial.printf("strobe %d, %d, %d", addr, addr | CC1101_BURST, CC1101_WRITE | (addr & 0b111111));
-  // Serial.println();
   return bus.strobe(addr);
   // return bus.strobe(CC1101_WRITE | (addr & 0b111111));
   // return bus.strobe(addr | CC1101_BURST);
 };
 uint8_t CC1101::readReg(byte addr) {
-  // Serial.printf("readReg %d, %d, %d", addr, addr | CC1101_READ, CC1101_READ | (addr & 0b111111));
-  // Serial.println();
   return bus.read(addr | CC1101_READ);
   // return bus.read(CC1101_READ | (addr & 0b111111));
 };
-uint8_t CC1101::readStatus(byte addr) {
+uint8_t CC1101::readStatusReg(byte addr) {
   // uint8_t header = CC1101_READ | (addr & 0b111111);
   // header |= CC1101_BURST;
-  // Serial.printf("readStatus %d, %d, %d", addr, header, addr | CC1101_READ_BURST);
-  // Serial.println();
   return bus.read(addr | CC1101_READ_BURST);
+  // return bus.read(CC1101_READ | CC1101_BURST | addr);
 };
 uint8_t CC1101::readRegField(byte addr, byte lo, byte hi) {
   // return bus.readField(addr | CC1101_BURST, lo, hi);
@@ -561,8 +560,6 @@ void CC1101::readRegBurst(byte addr, uint8_t *buff, size_t len) {
   // bus.readBurst(CC1101_READ | CC1101_BURST | (addr & 0b111111), buff, len);
 };
 void CC1101::writeReg(byte addr, uint8_t val) {
-  // Serial.printf("writeReg %d, %d, %d", addr, addr | CC1101_WRITE, CC1101_WRITE | (addr & 0b111111));
-  // Serial.println();
   bus.write(addr | CC1101_WRITE, val);
   // bus.write(CC1101_WRITE | (addr & 0b111111), val);
 };
