@@ -51,19 +51,19 @@ void txTask(void *pvParameters) {
   SPIClass fspi(FSPI);
   CC1101 radio(CC1101_MOD_2FSK,         // mod
                433.8,                   // freq
-               30,                      // drate
+               10,                      // drate
                CC1101_POWER_3MW,        // pwr
                0,                       // addr
                CC1101_PKTLEN_FIXED,     // packet length mode
-               4,                       // pktlen
+               4,                      // pktlen
                CC1101_SYNC_MODE_16_16,  // sync mode
                0x1234,                  // sync word
                64,                      // preamble length
-               false,                    // crc
+               true,                    // crc
                false,                   // fec
-               false,                    // auto calib
-               false,                   // manchester
-               false,                    // append status
+               true,                    // auto calib
+               true,                   // manchester
+               true,                    // append status
                false,                   // data whitening
                TX_SS,                   // ss/cs pin
                FSPI_MISO,               // miso pin
@@ -107,19 +107,19 @@ void rxTask(void *pvParameters) {
   SPIClass hspi(HSPI);
   CC1101 radio(CC1101_MOD_2FSK,         // mod
                433.8,                   // freq
-               30,                      // drate
+               10,                      // drate
                CC1101_POWER_3MW,        // pwr
                0,                       // addr
                CC1101_PKTLEN_FIXED,     // packet length mode
-               4,                       // pktlen
+               4,                      // pktlen
                CC1101_SYNC_MODE_16_16,  // sync mode
                0x1234,                  // sync word
                64,                      // preamble length
-               false,                    // crc
+               true,                    // crc
                false,                   // fec
-               false,                    // auto calib
-               false,                   // manchester
-               false,                    // append status
+               true,                    // auto calib
+               true,                   // manchester
+               true,                    // append status
                false,                   // data whitening
                RX_SS,                   // ss/cs pin
                HSPI_MISO,               // miso pin
@@ -146,7 +146,10 @@ void rxTask(void *pvParameters) {
 
   while (true) {
     if (radio.read(buff)) {
-      Serial.printf("Received: [%d, %d, %d, %d], Rssi: %d, Lqi: %d\n", buff[0], buff[1], buff[2], buff[3], radio.rssi, radio.lqi);
+      Serial.printf("Received: [%d, %d, %d, %d], Rssi: %d, Lqi: %d", buff[0], buff[1], buff[2], buff[3], radio.rssi, radio.lqi);
+    // } else {
+    //   Serial.print("Error receiving rx pkt");
+      Serial.println();
     }
   }
 }

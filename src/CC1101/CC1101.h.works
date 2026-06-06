@@ -99,7 +99,7 @@ class CC1101 {
         CC1101_PowerMW pwr = CC1101_POWER_1MW,
         uint8_t addr = 0,
         CC1101_PktLenMode pktLenMode = CC1101_PKTLEN_VARIABLE,
-        uint8_t pktLen = 64,
+        uint8_t pktLen = 4,
         CC1101_SyncMode syncMode = CC1101_SYNC_MODE_16_16,
         uint16_t syncWord = 0x1234,
         uint8_t preambleLen = 64,
@@ -138,13 +138,13 @@ class CC1101 {
   bool begin();
 
   bool read(uint8_t *buff);
+  bool read(uint8_t *buff, uint8_t len);
+  bool readUntil(uint8_t *buff, size_t timeoutMs);
+  bool readUntil(uint8_t *buff, uint8_t len, size_t timeoutMs);
   bool write(uint8_t *buff);
-  // bool read(uint8_t *buff, uint8_t len);
-  // bool readUntil(uint8_t *buff, size_t timeoutMs);
-  // bool readUntil(uint8_t *buff, uint8_t len, size_t timeoutMs);
-  // bool write(uint8_t *buff, uint8_t len);
-  // bool link(uint8_t *txBuff, uint8_t *rxBuff, size_t timeoutMs = 500);
-  // void link2(uint8_t *txBuff, uint8_t *rxBuff, size_t timeoutMs = 500);
+  bool write(uint8_t *buff, uint8_t len);
+  bool link(uint8_t *txBuff, uint8_t *rxBuff, size_t timeoutMs = 500);
+  void link2(uint8_t *txBuff, uint8_t *rxBuff, size_t timeoutMs = 500);
 
   private: 
     enum State {
@@ -180,7 +180,7 @@ class CC1101 {
       [6]                  = {  0.0, 0.0   },
       [CC1101_MOD_MSK]     = { 26.0, 500.0 }
     };
-    inline static const byte pwrTable[][8] = {
+    inline static const byte powerTable[][8] = {
       [CC1101_FREQ_BAND_315] = { 0x12, 0x0d, 0x1c, 0x34, 0x51, 0x85, 0xcb, 0xc2 },
       [CC1101_FREQ_BAND_433] = { 0x12, 0x0e, 0x1d, 0x34, 0x60, 0x84, 0xc8, 0xc0 },
       [CC1101_FREQ_BAND_868] = { 0x03, 0x0f, 0x1e, 0x27, 0x50, 0x81, 0xcb, 0xc2 },
@@ -211,6 +211,7 @@ class CC1101 {
     void reset();
     void flushRxBuff();
     void flushTxBuff();
+    byte readStatus(byte addr);
     void waitForState(State state = STATE_IDLE);
      
     byte getState();
@@ -218,7 +219,6 @@ class CC1101 {
     bool getFreqBand(float freq, const float freqTable[][2]);
     uint8_t getPreambleIdx(uint8_t len);
 
-    void setCCA(bool en);
     void setCRC(bool en);
     void setFEC(bool en);
     void setAddr(byte addr);
@@ -228,33 +228,23 @@ class CC1101 {
     void setAppendStatus(bool en);
     void setDataWhitening(bool en);
     void setPktLen(uint8_t len);
-    void setPktLenMode(CC1101_PktLenMode mode);
+    void setPktLenMode(bool isVariablePktLen);
     void setMod(CC1101_Modulation mod);
     void setFreq(float freq);
     void setDrate(float drate);
     void setPwr(CC1101_FreqBand freqBand, CC1101_PowerMW pwr, const uint8_t pwrTable[][8]);
-
-    void setState(State state = STATE_IDLE);
     void setIdleState();
     void setRxState();
     void setTxState();
-    // void setTwoWay();
+    void setTwoWay();
+
     bool enoughRxBytes(uint8_t len);
     void waitForRxBytes(uint8_t len);
     bool waitForRxBytes(uint8_t len, size_t timeoutMs);
     bool readRxFifo(uint8_t *buff);
-    void writeTxFifo(uint8_t *buff);
     // bool readRxFifo(uint8_t *buff, uint8_t len);
+    void writeTxFifo(uint8_t *buff);
     // void writeTxFifo(uint8_t *buff, uint8_t len);
-
-    uint8_t strobe(byte addr);
-    uint8_t readReg(byte addr);
-    uint8_t readStatusReg(byte addr);
-    uint8_t readRegField(byte addr, byte lo, byte hi);
-    void readRegBurst(byte addr, uint8_t *buff, size_t len);
-    void writeReg(byte addr, uint8_t val);
-    void writeRegField(byte addr, byte lo, byte hi, uint8_t val);
-    void writeRegBurst(byte addr, uint8_t *buff, size_t len);
 };
 
 #endif

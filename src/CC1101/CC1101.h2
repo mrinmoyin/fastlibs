@@ -233,12 +233,12 @@ class CC1101 {
     void setFreq(float freq);
     void setDrate(float drate);
     void setPwr(CC1101_FreqBand freqBand, CC1101_PowerMW pwr, const uint8_t pwrTable[][8]);
-
     void setState(State state = STATE_IDLE);
-    void setIdleState();
-    void setRxState();
-    void setTxState();
+    // void setIdleState();
+    // void setRxState();
+    // void setTxState();
     // void setTwoWay();
+
     bool enoughRxBytes(uint8_t len);
     void waitForRxBytes(uint8_t len);
     bool waitForRxBytes(uint8_t len, size_t timeoutMs);
