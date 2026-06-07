@@ -238,14 +238,8 @@ class CC1101 {
     void setIdleState();
     void setRxState();
     void setTxState();
-    // void setTwoWay();
-    bool enoughRxBytes(uint8_t len);
-    void waitForRxBytes(uint8_t len);
-    bool waitForRxBytes(uint8_t len, size_t timeoutMs);
     bool readRxFifo(uint8_t *buff);
     void writeTxFifo(uint8_t *buff);
-    // bool readRxFifo(uint8_t *buff, uint8_t len);
-    // void writeTxFifo(uint8_t *buff, uint8_t len);
 
     uint8_t strobe(byte addr);
     uint8_t readReg(byte addr);
