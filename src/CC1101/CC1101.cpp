@@ -220,20 +220,20 @@ void CC1101::reset() {
   digitalWrite(ss, HIGH);
   delayMicroseconds(40);
 
-  // strobe(CC1101_REG_RES);
-  bus.strobe(CC1101_REG_RES | CC1101_WRITE_BURST);
+  strobe(CC1101_REG_RES);
+  // bus.strobe(CC1101_REG_RES | CC1101_WRITE_BURST);
 };
 void CC1101::flushRxBuff() {
   // if (getState() != (STATE_IDLE || STATE_RXFIFO_OVERFLOW)) return;
   if (getState() != (STATE_IDLE || STATE_RXFIFO_OVERFLOW)) setIdleState();
-  // strobe(CC1101_REG_FRX);
-  bus.strobe(CC1101_REG_FRX | CC1101_WRITE_BURST);
+  strobe(CC1101_REG_FRX);
+  // bus.strobe(CC1101_REG_FRX | CC1101_WRITE_BURST);
 };
 void CC1101::flushTxBuff() {
   if (getState() != (STATE_IDLE || STATE_TXFIFO_UNDERFLOW)) return;
   // if(getState() != (STATE_IDLE || STATE_TXFIFO_UNDERFLOW)) setIdleState();
-  // strobe(CC1101_REG_FTX);
-  bus.strobe(CC1101_REG_FTX | CC1101_WRITE_BURST);
+  strobe(CC1101_REG_FTX);
+  // bus.strobe(CC1101_REG_FTX | CC1101_WRITE_BURST);
 };
 void CC1101::waitForState(State state) {
   while (getState() != state) { 
@@ -445,7 +445,7 @@ void CC1101::setState(State state) {
 };
 void CC1101::setIdleState() {
   if (getState() == STATE_IDLE) return;
-  // strobe(CC1101_REG_IDLE);
+  strobe(CC1101_REG_IDLE);
   bus.strobe(CC1101_REG_IDLE);
   while (getState() != STATE_IDLE);
 };
@@ -578,9 +578,9 @@ void CC1101::writeTxFifo(uint8_t *buff) {
 };
 
 uint8_t CC1101::strobe(byte addr) {
-  return bus.strobe(addr);
+  // return bus.strobe(addr);
   // return bus.strobe(CC1101_WRITE | (addr & 0b111111));
-  // return bus.strobe(addr | CC1101_BURST);
+  return bus.strobe(addr | CC1101_WRITE_BURST);
 };
 uint8_t CC1101::readReg(byte addr) {
   return bus.read(addr | CC1101_READ);
