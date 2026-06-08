@@ -139,6 +139,7 @@ class CC1101 {
 
   bool read(uint8_t *buff);
   bool write(uint8_t *buff);
+  bool write(String str);
   // bool read(uint8_t *buff, uint8_t len);
   // bool readUntil(uint8_t *buff, size_t timeoutMs);
   // bool readUntil(uint8_t *buff, uint8_t len, size_t timeoutMs);
@@ -239,7 +240,7 @@ class CC1101 {
     void setRxState();
     void setTxState();
     bool readRxFifo(uint8_t *buff);
-    void writeTxFifo(uint8_t *buff);
+    void writeTxFifo(uint8_t *buff, size_t len = 0);
 
     uint8_t strobe(byte addr);
     uint8_t readReg(byte addr);

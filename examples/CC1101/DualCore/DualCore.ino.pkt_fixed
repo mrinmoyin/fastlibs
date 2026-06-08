@@ -54,8 +54,8 @@ void txTask(void *pvParameters) {
                10,                      // drate
                CC1101_POWER_3MW,        // pwr
                0,                       // addr
-               CC1101_PKTLEN_VARIABLE,     // packet length mode
-               64,                      // pktlen
+               CC1101_PKTLEN_FIXED,     // packet length mode
+               4,                      // pktlen
                CC1101_SYNC_MODE_16_16,  // sync mode
                0x1234,                  // sync word
                64,                      // preamble length
@@ -86,14 +86,13 @@ void txTask(void *pvParameters) {
   Serial.printf("TX Radio initialized! [%d, %d]", radio.partnum, radio.version);
   Serial.println();
 
-  while (true) {
-    static int count = 0;
-    String msg = "Namaste #" + String(count++);
+  byte buff[4] = { 200, 201, 202, 203 };
 
-    if (radio.write(msg)) {
-      Serial.printf("Sending pkt: %s", msg);
+  while (true) {
+    if (radio.write(buff)) {
+      Serial.printf("Sending pkt: [%d, %d, %d, %d]", buff[0], buff[1], buff[2], buff[3]);
     } else {
-      Serial.print("Error sending packet");
+      Serial.print("Error sending tx packet");
     }
 
     Serial.println();
@@ -111,8 +110,8 @@ void rxTask(void *pvParameters) {
                10,                      // drate
                CC1101_POWER_3MW,        // pwr
                0,                       // addr
-               CC1101_PKTLEN_VARIABLE,     // packet length mode
-               64,                      // pktlen
+               CC1101_PKTLEN_FIXED,     // packet length mode
+               4,                      // pktlen
                CC1101_SYNC_MODE_16_16,  // sync mode
                0x1234,                  // sync word
                64,                      // preamble length
@@ -143,11 +142,13 @@ void rxTask(void *pvParameters) {
   Serial.printf("RX Radio initialized! [%d, %d]", radio.partnum, radio.version);
   Serial.println();
 
-  char buff[64];
+  byte buff[4];
 
   while (true) {
-    if (radio.read((uint8_t *)buff)) {
-      Serial.printf("Received: %s, Rssi: %d, Lqi: %d", buff, radio.rssi, radio.lqi);
+    if (radio.read(buff)) {
+      Serial.printf("Received: [%d, %d, %d, %d], Rssi: %d, Lqi: %d", buff[0], buff[1], buff[2], buff[3], radio.rssi, radio.lqi);
+    // } else {
+    //   Serial.print("Error receiving rx pkt");
       Serial.println();
     }
   }

@@ -40,7 +40,6 @@ bool CC1101::read(uint8_t *buff) {
   return isRead;
 };
 bool CC1101::write(uint8_t *buff) {
-  // if (bus.readField(CC1101_REG_TXBYTES | CC1101_READ_BURST, 6, 0) != 0 || getState() != STATE_RX) {
   if (readStatusReg(CC1101_REG_TXBYTES) != 0 || getState() != STATE_RX) {
     setIdleState();
     // setState();
@@ -49,6 +48,23 @@ bool CC1101::write(uint8_t *buff) {
   }
   setIdleState();
   writeTxFifo(buff);
+  setTxState();
+  // setState(STATE_TX);
+  waitForState();
+  flushTxBuff();
+  setRxState();
+  // setState(STATE_RX);
+  return true;
+};
+bool CC1101::write(String str) {
+  if (readStatusReg(CC1101_REG_TXBYTES) != 0 || getState() != STATE_RX) {
+    setIdleState();
+    // setState();
+    flushRxBuff();
+    flushTxBuff();
+  }
+  setIdleState();
+  writeTxFifo((uint8_t *)str.c_str(), str.length());
   setTxState();
   // setState(STATE_TX);
   waitForState();
@@ -200,7 +216,6 @@ void CC1101::setPktLen(uint8_t len) {
 void CC1101::setPktLenMode(CC1101_PktLenMode mode) { // TODO: infinite 
   // writeRegField(CC1101_REG_PKTCTRL0, 1, 0, (uint8_t)mode);
   bus.writeField(CC1101_REG_PKTCTRL0, CC1101_READ, CC1101_WRITE, 1, 0, (uint8_t)mode);
-  // bus.writeField(CC1101_REG_PKTCTRL0, CC1101_READ, CC1101_WRITE, 1, 0, (byte)isVariablePktLen); 
 };
 void CC1101::setMod(CC1101_Modulation mod) {
   // writeRegField(CC1101_REG_MDMCFG2, 6, 4, (uint8_t)mod);
@@ -316,6 +331,7 @@ void CC1101::setTxState() {
 };
 bool CC1101::readRxFifo(uint8_t *buff) {
   uint8_t len = isVariablePktLen ? readReg(CC1101_REG_FIFO) : pktLen;
+
   if(addr) (void)readReg(CC1101_REG_FIFO);
   // if (bus.readField(CC1101_REG_RXBYTES | CC1101_READ_BURST, 6, 0) < len) return false;
   if (readStatusReg(CC1101_REG_RXBYTES) < len) return false;
@@ -330,12 +346,11 @@ bool CC1101::readRxFifo(uint8_t *buff) {
   }
   return true;
 };
-void CC1101::writeTxFifo(uint8_t *buff) {
-  uint8_t len = isVariablePktLen ? sizeof(buff) : pktLen;
-  if (isVariablePktLen) writeReg(CC1101_REG_FIFO, len);
+void CC1101::writeTxFifo(uint8_t *buff, size_t len) {
+  uint8_t length = isVariablePktLen ? ( len ? len : sizeof(buff)) : pktLen;
+  if (isVariablePktLen) writeReg(CC1101_REG_FIFO, length);
   if (addr) writeReg(CC1101_REG_FIFO, addr);
-  // writeReg(CC1101_REG_FIFO, len);
-  writeRegBurst(CC1101_REG_FIFO, buff, len);
+  writeRegBurst(CC1101_REG_FIFO, buff, length);
 };
 
 uint8_t CC1101::strobe(byte addr) {
