@@ -45,8 +45,8 @@ void setup() {
 void loop() {}
 
 void txTask(void *pvParameters) {
-  Serial.print("TX Task running on core ");
-  Serial.println(xPortGetCoreID());
+  Serial.printf("%s running on core %d", pcTaskGetName(NULL), xPortGetCoreID());
+  Serial.println();
 
   SPIClass fspi(FSPI);
   CC1101 radio(CC1101_MOD_2FSK,         // mod
@@ -101,8 +101,8 @@ void txTask(void *pvParameters) {
 }
 
 void rxTask(void *pvParameters) {
-  Serial.print("RX Task running on core ");
-  Serial.println(xPortGetCoreID());
+  Serial.printf("%s running on core %d", pcTaskGetName(NULL), xPortGetCoreID());
+  Serial.println();
 
   SPIClass hspi(HSPI);
   CC1101 radio(CC1101_MOD_2FSK,         // mod

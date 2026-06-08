@@ -129,7 +129,7 @@ class Bus<true> {
     uint32_t read24(byte addr) {
       spiStart();
       spi.transfer(addr);
-      uint16_t data = ((spi.transfer(0) << 16) | spi.transfer(0) << 8) | spi.transfer(0);
+      uint32_t data = ((spi.transfer(0) << 16) | spi.transfer(0) << 8) | spi.transfer(0);
       spiStop();
       return data;
     }
