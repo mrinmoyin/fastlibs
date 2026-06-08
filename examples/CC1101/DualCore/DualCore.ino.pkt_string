@@ -45,17 +45,17 @@ void setup() {
 void loop() {}
 
 void txTask(void *pvParameters) {
-  Serial.print("TX Task running on core ");
-  Serial.println(xPortGetCoreID());
+  Serial.printf("%s running on core %d", pcTaskGetName(NULL), xPortGetCoreID());
+  Serial.println();
 
   SPIClass fspi(FSPI);
   CC1101 radio(CC1101_MOD_2FSK,         // mod
                433.8,                   // freq
-               30,                      // drate
+               10,                      // drate
                CC1101_POWER_3MW,        // pwr
                0,                       // addr
-               // CC1101_PKTLEN_FIXED,     // packet length mode
-               4,                       // pktlen
+               CC1101_PKTLEN_VARIABLE,     // packet length mode
+               64,                      // pktlen
                CC1101_SYNC_MODE_16_16,  // sync mode
                0x1234,                  // sync word
                64,                      // preamble length
@@ -65,7 +65,6 @@ void txTask(void *pvParameters) {
                true,                   // manchester
                true,                    // append status
                false,                   // data whitening
-               false,
                TX_SS,                   // ss/cs pin
                FSPI_MISO,               // miso pin
                fspi);                   // spi class
@@ -87,13 +86,14 @@ void txTask(void *pvParameters) {
   Serial.printf("TX Radio initialized! [%d, %d]", radio.partnum, radio.version);
   Serial.println();
 
-  byte buff[4] = { 200, 201, 202, 203 };
-
   while (true) {
-    if (radio.write(buff)) {
-      Serial.printf("Sending pkt: [%d, %d, %d, %d]", buff[0], buff[1], buff[2], buff[3]);
+    static int count = 0;
+    String msg = "Namaste #" + String(count++);
+
+    if (radio.write(msg)) {
+      Serial.printf("Sending pkt: %s", msg);
     } else {
-      Serial.print("Error sending tx packet");
+      Serial.print("Error sending packet");
     }
 
     Serial.println();
@@ -102,17 +102,17 @@ void txTask(void *pvParameters) {
 }
 
 void rxTask(void *pvParameters) {
-  Serial.print("RX Task running on core ");
-  Serial.println(xPortGetCoreID());
+  Serial.printf("%s running on core %d", pcTaskGetName(NULL), xPortGetCoreID());
+  Serial.println();
 
   SPIClass hspi(HSPI);
   CC1101 radio(CC1101_MOD_2FSK,         // mod
                433.8,                   // freq
-               30,                      // drate
+               10,                      // drate
                CC1101_POWER_3MW,        // pwr
                0,                       // addr
-               // CC1101_PKTLEN_FIXED,     // packet length mode
-               4,                       // pktlen
+               CC1101_PKTLEN_VARIABLE,     // packet length mode
+               64,                      // pktlen
                CC1101_SYNC_MODE_16_16,  // sync mode
                0x1234,                  // sync word
                64,                      // preamble length
@@ -122,7 +122,6 @@ void rxTask(void *pvParameters) {
                true,                   // manchester
                true,                    // append status
                false,                   // data whitening
-               false,
                RX_SS,                   // ss/cs pin
                HSPI_MISO,               // miso pin
                hspi);                   // spi class
@@ -144,11 +143,12 @@ void rxTask(void *pvParameters) {
   Serial.printf("RX Radio initialized! [%d, %d]", radio.partnum, radio.version);
   Serial.println();
 
-  byte buff[4];
+  char buff[64];
 
   while (true) {
-    if (radio.read(buff)) {
-      Serial.printf("Received: [%d, %d, %d, %d], Rssi: %d, Lqi: %d\n", buff[0], buff[1], buff[2], buff[3], radio.rssi, radio.lqi);
+    if (radio.read((uint8_t *)buff)) {
+      Serial.printf("Received: %s, Rssi: %d, Lqi: %d", buff, radio.rssi, radio.lqi);
+      Serial.println();
     }
   }
 }
